@@ -733,7 +733,7 @@ export default function DraftPage() {
                             </div>
 
                             <div className="team-times">
-                                 
+
 
                                 <div className="time-box">
                                     <div className="label">Reserve</div>
