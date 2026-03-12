@@ -6,6 +6,32 @@ import {db} from "../firebase";
 import {useSearchParams} from "react-router-dom";
 
 export default function DraftPage() {
+
+    const draftOrder = [
+        "team1", //1
+        "team2", //2
+        "team1", //3
+        "team2", //4
+        "team2", //5
+        "team1", //6
+        "team2", //7
+        "team1", //8
+        "team2", //9
+        "team1", //10
+        "team1", //11
+        "team2", //12
+        "team2", //13
+        "team1", //14
+        "team1", //15
+        "team2", //16
+        "team2", //17
+        "team1", //18
+        "team1", //19
+        "team2"  //20
+    ];
+    const [searchParams] = useSearchParams();
+    const role = searchParams.get("role");
+    const isAdmin = role === "host";
     const [lcSearch, setLcSearch] = useState("");
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [showLCModal, setShowLCModal] = useState(false);
@@ -13,15 +39,24 @@ export default function DraftPage() {
     const [characters, setCharacters] = useState([]);
     const [lightcones, setLightcones] = useState([]);
     const [draft, setDraft] = useState([]);
-    const [searchParams] = useSearchParams();
+
     const nextPickIndex = draft.length;
+    const currentTurn = draftOrder[nextPickIndex];
+
+    const canPick =
+        isAdmin ||
+        (role === "team1" && currentTurn === "team1") ||
+        (role === "team2" && currentTurn === "team2");
+    const isSlot2Banned = draft.length > 1;
     const roomID = searchParams.get("room");
-    const role = searchParams.get("role");
 
-    const [team1Name] = useState("Team 1");
-    const [team2Name] = useState("Team 2");
 
-    const isAdmin = role === "host";
+    const params = new URLSearchParams(window.location.search);
+
+    const team1 = params.get("team1");
+    const team2 = params.get("team2");
+
+
 
     const [search, setSearch] = useState("");
 
@@ -35,18 +70,36 @@ export default function DraftPage() {
     const [team2Deaths, setTeam2Deaths] = useState(0);
     const [team2Penalty, setTeam2Penalty] = useState(0);
 
-    const [activeTeam, setActiveTeam] = useState("team1");
+    const [timerData, setTimerData] = useState(null);
+    useEffect(() => {
 
-    const [team1Timer, setTeam1Timer] = useState({
-        reserve: 600,
-        penalty: 0
-    });
+        const timerRef = ref(db, "rooms/" + roomID + "/timer");
 
-    const [team2Timer, setTeam2Timer] = useState({
-        reserve: 600,
-        penalty: 0
-    });
-    const [timerData,setTimerData] = useState(null)
+        onValue(timerRef, (snapshot) => {
+
+            const data = snapshot.val();
+
+            if (!data) {
+
+                const defaultTimer = {
+                    activeTeam: "team1",
+                    team1: {
+                        reserve: 600,
+                        penalty: 0
+                    },
+                    team2: {
+                        reserve: 600,
+                        penalty: 0
+                    }
+                };
+
+                set(timerRef, defaultTimer);
+
+            }
+
+        }, { onlyOnce: true });
+
+    }, [roomID]);
     const formatTime = (sec) => {
 
         const m = Math.floor(sec / 60);
@@ -56,8 +109,63 @@ export default function DraftPage() {
 
     };
 
+    useEffect(() => {
 
+        const timerRef = ref(db, "rooms/" + roomID + "/timer");
 
+        onValue(timerRef, (snapshot) => {
+
+            const data = snapshot.val();
+
+            if (data) {
+                setTimerData(data);
+            }
+
+        });
+
+    }, [roomID]);
+
+    useEffect(() => {
+
+        if (!isAdmin || !timerData || !isSlot2Banned) return;
+
+        // ❗ nếu draft đã đủ 20 thì dừng timer
+        if (draft.length >= 20) return;
+
+        const timerRef = ref(db, "rooms/" + roomID + "/timer");
+
+        const interval = setInterval(() => {
+
+            // nếu đủ 20 thì dừng luôn
+            if (draft.length >= 20) return;
+
+            let newTimer = {...timerData};
+
+            if (newTimer.activeTeam === "team1") {
+
+                if (newTimer.team1.reserve > 0) {
+                    newTimer.team1.reserve -= 1;
+                } else {
+                    newTimer.team1.penalty += 1;
+                }
+
+            } else {
+
+                if (newTimer.team2.reserve > 0) {
+                    newTimer.team2.reserve -= 1;
+                } else {
+                    newTimer.team2.penalty += 1;
+                }
+
+            }
+
+            set(timerRef, newTimer);
+
+        }, 1000);
+
+        return () => clearInterval(interval);
+
+    }, [timerData, isAdmin, isSlot2Banned, draft.length]);
 
     // LOAD JSON
     useEffect(() => {
@@ -97,106 +205,23 @@ export default function DraftPage() {
 
     }, [roomID]);
 
-    useEffect(() => {
 
-        const timer = setInterval(() => {
-
-            if (activeTeam === "team1") {
-
-                setTeam1Timer((t) => {
-
-                    if (t.reserve > 0) {
-                        return { ...t, reserve: t.reserve - 1 };
-                    }
-
-                    return { ...t, penalty: t.penalty + 1 };
-
-                });
-
-            }
-
-            if (activeTeam === "team2") {
-
-                setTeam2Timer((t) => {
-
-                    if (t.reserve > 0) {
-                        return { ...t, reserve: t.reserve - 1 };
-                    }
-
-                    return { ...t, penalty: t.penalty + 1 };
-
-                });
-
-            }
-
-        }, 1000);
-
-        return () => clearInterval(timer);
-
-    }, [activeTeam]);
-
-    useEffect(()=>{
-
-        const timerRef = ref(db,"rooms/"+roomID+"/timer")
-
-        onValue(timerRef,(snapshot)=>{
-
-            const data = snapshot.val()
-
-            if(data){
-                setTimerData(data)
-            }
-
-        })
-
-    },[roomID])
-
-    useEffect(()=>{
-
-        if(!isAdmin) return
-
-        const timerRef = ref(db,"rooms/"+roomID+"/timer")
-
-        const interval = setInterval(()=>{
-
-            onValue(timerRef,(snapshot)=>{
-
-                let t = snapshot.val()
-
-                if(!t) return
-
-                let team = t.activeTeam
-
-                let obj = t[team]
-
-                if(obj.reserve > 0){
-
-                    obj.reserve--
-
-                }
-
-                else{
-
-                    obj.penalty++
-
-                }
-
-                set(timerRef,{
-                    ...t,
-                    [team]:obj
-                })
-
-            },{onlyOnce:true})
-
-        },1000)
-
-        return ()=>clearInterval(interval)
-
-    },[roomID,isAdmin])
 
     const switchTurn = () => {
+        if (draft.length >= 19) return;
 
-        setActiveTeam(prev => prev === "team1" ? "team2" : "team1");
+        const nextIndex = draft.length + 1;
+
+        if(nextIndex >= draftOrder.length) return;
+
+        const nextTeam = draftOrder[nextIndex];
+
+        const timerRef = ref(db, "rooms/" + roomID + "/timer");
+
+        set(timerRef,{
+            ...timerData,
+            activeTeam: nextTeam
+        });
 
     };
 
@@ -245,7 +270,7 @@ export default function DraftPage() {
 
     // PICK CHARACTER
     const pickCharacter = (character) => {
-
+        if (!canPick) return;
         if (draft.find(c => c.characterName === character.characterName)) return;
 
         if (draft.length >= 20) return;
@@ -269,22 +294,6 @@ export default function DraftPage() {
 
         saveDraft(newDraft);
         switchTurn();
-        const timerRef = ref(db,"rooms/"+roomID+"/timer")
-
-        onValue(timerRef,(snapshot)=>{
-
-            let t = snapshot.val()
-
-            if(!t) return
-
-            let next = t.activeTeam === "team1" ? "team2" : "team1"
-
-            set(timerRef,{
-                ...t,
-                activeTeam: next
-            })
-
-        },{onlyOnce:true})
     };
 
 //Function đổi Eidolon
@@ -301,9 +310,18 @@ export default function DraftPage() {
 
     // RESET
     const resetDraft = () => {
-        saveDraft([]);
-    };
 
+        saveDraft([]);
+
+        const timerRef = ref(db, "rooms/" + roomID + "/timer");
+
+        set(timerRef,{
+            activeTeam:"team1",
+            team1:{reserve:600,penalty:0},
+            team2:{reserve:600,penalty:0}
+        });
+
+    };
     const filteredCharacters = characters.filter((c) =>
         c.characterName.toLowerCase().includes(search.toLowerCase())
     );
@@ -535,9 +553,18 @@ export default function DraftPage() {
 
         if (draft.length === 0) return;
 
-        const newDraft = draft.slice(0, -1);
+        const newDraft = draft.slice(0,-1);
 
         saveDraft(newDraft);
+
+        const team = draftOrder[newDraft.length];
+
+        const timerRef = ref(db,"rooms/"+roomID+"/timer");
+
+        set(timerRef,{
+            ...timerData,
+            activeTeam: team
+        });
 
     };
 
@@ -616,7 +643,7 @@ export default function DraftPage() {
 
                     <div className="score-panel">
 
-                        <h2>{team1Name}</h2>
+                        <h2>{team1}</h2>
 
                         <p>Total cost:
                             <span>{team1Score.toFixed(1)}</span>
@@ -669,8 +696,8 @@ export default function DraftPage() {
 
                         <div className="team-top-row">
 
-                            <div className={`team-header blue ${activeTeam==="team1"?"active-turn":""}`}>
-                                {team1Name}
+                            <div className={`team-header blue ${timerData?.activeTeam === "team1"?"active-turn":""}`}>
+                                {team1}
                             </div>
 
                             <div className="team-times">
@@ -679,14 +706,14 @@ export default function DraftPage() {
                                 <div className="time-box">
                                     <div className="label">Reserve</div>
                                     <div className="value">
-                                        {formatTime(team1Timer.reserve)}
+                                        {formatTime(timerData?.team1?.reserve ?? 0)}
                                     </div>
                                 </div>
 
                                 <div className="time-box">
                                     <div className="label">Penalty</div>
                                     <div className="value">
-                                        {formatTime(team1Timer.penalty)}
+                                        {formatTime(timerData?.team1?.penalty ?? 0)}
                                     </div>
                                 </div>
 
@@ -728,24 +755,23 @@ export default function DraftPage() {
 
                         <div className="team-top-row">
 
-                            <div className={`team-header red ${activeTeam==="team2"?"active-turn":""}`}>
-                                {team2Name}
+                            <div className={`team-header red ${timerData?.activeTeam === "team2"?"active-turn":""}`}>
+                                {team2}
                             </div>
 
                             <div className="team-times">
 
-
                                 <div className="time-box">
                                     <div className="label">Reserve</div>
                                     <div className="value">
-                                        {formatTime(team2Timer.reserve)}
+                                        {formatTime(timerData?.team2?.reserve ?? 0)}
                                     </div>
                                 </div>
 
                                 <div className="time-box">
                                     <div className="label">Penalty</div>
                                     <div className="value">
-                                        {formatTime(team2Timer.penalty)}
+                                        {formatTime(timerData?.team2?.penalty ?? 0)}
                                     </div>
                                 </div>
 
@@ -780,7 +806,7 @@ export default function DraftPage() {
 
                     <div className="score-panel">
 
-                        <h2>{team2Name}</h2>
+                        <h2>{team2}</h2>
 
                         <p>Total cost:
                             <span>{team2Score.toFixed(1)}</span>
@@ -840,12 +866,14 @@ export default function DraftPage() {
 
                     <div className="button-group">
 
-                        <button
-                            className="custom-btn btn-undo"
-                            onClick={undoPick}
-                        >
-                            Undo
-                        </button>
+                        {isAdmin && (
+                            <button
+                                className="custom-btn btn-undo"
+                                onClick={undoPick}
+                            >
+                                Undo
+                            </button>
+                        )}
 
                         {isAdmin && (
                             <button
@@ -876,15 +904,15 @@ export default function DraftPage() {
                             <div
                                 key={index}
                                 className="tile"
-                                onClick={() => !isPicked && pickCharacter(character)}
+                                onClick={() => !isPicked && canPick && pickCharacter(character)}
                                 style={{
                                     background:
                                         character.rarity === 5
                                             ? "#e6b741"
                                             : "#9b59b6",
 
-                                    opacity: isPicked ? 0.35 : 1,
-                                    pointerEvents: isPicked ? "none" : "auto",
+                                    opacity: !canPick || isPicked ? 0.35 : 1,
+                                    pointerEvents: !canPick || isPicked ? "none" : "auto",
                                     filter: isPicked ? "grayscale(100%) brightness(100%)" : "none"
                                 }}
                             >
