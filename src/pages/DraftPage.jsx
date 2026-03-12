@@ -60,6 +60,22 @@ export default function DraftPage() {
             (role === "team1" && currentTurn === "team1") ||
             (role === "team2" && currentTurn === "team2")
         );
+
+    const canEditSlot = (index) => {
+
+        if (isAdmin) return true;
+
+        if (role === "team1") {
+            return team1Slots.some(s => s.index === index);
+        }
+
+        if (role === "team2") {
+            return team2Slots.some(s => s.index === index);
+        }
+
+        return false;
+    };
+
     const isSlot2Banned = draft.length > 1;
     const roomID = searchParams.get("room");
 
@@ -262,6 +278,8 @@ export default function DraftPage() {
 
         if (isLocked) return;
 
+        if (!canEditSlot(index)) return;
+
         const char = draft[index];
 
         if (!char) return;
@@ -274,8 +292,13 @@ export default function DraftPage() {
 
     };
     const changeSuperimposition = (index, value) => {
+
+        if (!canEditSlot(index)) return;
+
         const newDraft = [...draft];
+
         newDraft[index].superimposition = value;
+
         saveDraft(newDraft);
     };
     const confirmLC = () => {
@@ -335,13 +358,14 @@ export default function DraftPage() {
 //Function đổi Eidolon
     const changeEidolon = (index, value) => {
 
+        if (!canEditSlot(index)) return;
+
         const newDraft = [...draft];
 
         newDraft[index].eidolon = value;
 
         saveDraft(newDraft);
     };
-
 
 
     // RESET
@@ -475,7 +499,7 @@ export default function DraftPage() {
                 )}
                 {char.lightConeImage && !isBan && (
                     <select
-                        disabled={isLocked}
+                        disabled={isLocked || !canEditSlot(index)}
                         value={char.superimposition || "S1"}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => changeSuperimposition(index, e.target.value)}
@@ -499,7 +523,7 @@ export default function DraftPage() {
                 {/* SELECT EIDOLON */}
                 {!isBan && (
                     <select
-                        disabled={isLocked}
+                        disabled={isLocked || !canEditSlot(index)}
                         value={char.eidolon}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => changeEidolon(index, e.target.value)}
