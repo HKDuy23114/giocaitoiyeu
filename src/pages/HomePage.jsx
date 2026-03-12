@@ -154,8 +154,16 @@ export default function HomePage() {
                         <button
                             className="start-btn"
                             onClick={() => navigate("/data")}
+                            style={styles.button}
                         >
                             View Data
+                        </button>
+                        <button
+                            className="custom-btn"
+                            onClick={() => navigate("/demo")}
+                            style={styles.button}
+                        >
+                            Demo Draft
                         </button>
                     </div>
 

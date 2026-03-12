@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import DraftPage from "./pages/DraftPage";
 import DataPage from "./pages/DataPage";
+import DraftDemoPage from "./pages/DraftDemoPage";
 function App() {
 
     return (
@@ -13,7 +14,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/data" element={<DataPage />} />
                 <Route path="/draft" element={<DraftPage />} />
-
+                <Route path="/demo" element={<DraftDemoPage />} />
             </Routes>
 
         </BrowserRouter>

@@ -1,7 +1,7 @@
 import {useState, useEffect} from "react";
 import "../styles/draft.css";
 import "../js/draft.js";
-import {ref, set, onValue} from "firebase/database";
+import {ref, set, onValue, remove} from "firebase/database";
 import {db} from "../firebase";
 import {useSearchParams} from "react-router-dom";
 
@@ -39,14 +39,27 @@ export default function DraftPage() {
     const [characters, setCharacters] = useState([]);
     const [lightcones, setLightcones] = useState([]);
     const [draft, setDraft] = useState([]);
-
+    const [isLocked, setIsLocked] = useState(false);
     const nextPickIndex = draft.length;
     const currentTurn = draftOrder[nextPickIndex];
+    const closeDraft = () => {
 
+        if (!confirm("Close draft and delete this room?")) return;
+
+        const roomRef = ref(db, "rooms/" + roomID);
+
+        remove(roomRef);
+
+        window.location.href = "/";
+
+    };
     const canPick =
-        isAdmin ||
-        (role === "team1" && currentTurn === "team1") ||
-        (role === "team2" && currentTurn === "team2");
+        !isLocked &&
+        (
+            isAdmin ||
+            (role === "team1" && currentTurn === "team1") ||
+            (role === "team2" && currentTurn === "team2")
+        );
     const isSlot2Banned = draft.length > 1;
     const roomID = searchParams.get("room");
 
@@ -71,6 +84,8 @@ export default function DraftPage() {
     const [team2Penalty, setTeam2Penalty] = useState(0);
 
     const [timerData, setTimerData] = useState(null);
+
+
     useEffect(() => {
 
         const timerRef = ref(db, "rooms/" + roomID + "/timer");
@@ -108,6 +123,24 @@ export default function DraftPage() {
         return `${m}:${s.toString().padStart(2,"0")}`;
 
     };
+
+    useEffect(() => {
+
+        const lockRef = ref(db, "rooms/" + roomID + "/locked");
+
+        onValue(lockRef, (snapshot) => {
+
+            const data = snapshot.val();
+
+            if (data === null) {
+                set(lockRef, false);
+            } else {
+                setIsLocked(data);
+            }
+
+        });
+
+    }, [roomID]);
 
     useEffect(() => {
 
@@ -227,6 +260,8 @@ export default function DraftPage() {
 
     const openLCModal = (index) => {
 
+        if (isLocked) return;
+
         const char = draft[index];
 
         if (!char) return;
@@ -270,6 +305,7 @@ export default function DraftPage() {
 
     // PICK CHARACTER
     const pickCharacter = (character) => {
+        if (isLocked) return;
         if (!canPick) return;
         if (draft.find(c => c.characterName === character.characterName)) return;
 
@@ -320,6 +356,14 @@ export default function DraftPage() {
             team1:{reserve:600,penalty:0},
             team2:{reserve:600,penalty:0}
         });
+
+    };
+
+    const toggleLock = () => {
+
+        const lockRef = ref(db, "rooms/" + roomID + "/locked");
+
+        set(lockRef, !isLocked);
 
     };
     const filteredCharacters = characters.filter((c) =>
@@ -431,6 +475,7 @@ export default function DraftPage() {
                 )}
                 {char.lightConeImage && !isBan && (
                     <select
+                        disabled={isLocked}
                         value={char.superimposition || "S1"}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => changeSuperimposition(index, e.target.value)}
@@ -454,6 +499,7 @@ export default function DraftPage() {
                 {/* SELECT EIDOLON */}
                 {!isBan && (
                     <select
+                        disabled={isLocked}
                         value={char.eidolon}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => changeEidolon(index, e.target.value)}
@@ -546,9 +592,6 @@ export default function DraftPage() {
         Number(team2Deaths) +
         Number(team2Penalty);
 
-    const team1TotalPoint = team1BasePoint + team1Extra;
-    const team2TotalPoint = team2BasePoint + team2Extra;
-
     const undoPick = () => {
 
         if (draft.length === 0) return;
@@ -571,6 +614,25 @@ export default function DraftPage() {
     const filteredLC = lightcones.filter(lc =>
         lc.characterName.toLowerCase().includes(lcSearch.toLowerCase())
     );
+
+    const team1TotalPoint = team1BasePoint + team1Extra;
+    const team2TotalPoint = team2BasePoint + team2Extra;
+    let winner = null;
+
+    if (draft.length >= 20) {
+
+        if (team1TotalPoint < team2TotalPoint) {
+            winner = team1;
+        }
+        else if (team2TotalPoint < team1TotalPoint) {
+            winner = team2;
+        }
+        else {
+            winner = "DRAW";
+        }
+
+    }
+
     return (
         <div>
             {/* toàn bộ code draft của bạn */}
@@ -744,7 +806,17 @@ export default function DraftPage() {
 
                     <div className="winner-container">
                         <div className="winner">
-                            <div className="label"></div>
+
+                            <div className="label" style={{fontSize:"28px", fontWeight:"bold"}}>
+
+                                {winner && (
+                                    winner === "DRAW"
+                                        ? "DRAW"
+                                        : `${winner} WIN!`
+                                )}
+
+                            </div>
+
                         </div>
                     </div>
 
@@ -868,6 +940,17 @@ export default function DraftPage() {
 
                         {isAdmin && (
                             <button
+                                className="custom-btn"
+                                onClick={toggleLock}
+                                style={{
+                                    background: isLocked ? "#e74c3c" : "#2ecc71"
+                                }}
+                            >
+                                {isLocked ? "Unlock Draft" : "Lock Draft"}
+                            </button>
+                        )}
+                        {isAdmin && (
+                            <button
                                 className="custom-btn btn-undo"
                                 onClick={undoPick}
                             >
@@ -881,6 +964,18 @@ export default function DraftPage() {
                                 onClick={resetDraft}
                             >
                                 Reset
+                            </button>
+                        )}
+                        {isAdmin && (
+                            <button
+                                className="custom-btn"
+                                onClick={closeDraft}
+                                style={{
+                                    background:"#2c3e50",
+                                    color:"white"
+                                }}
+                            >
+                                Close Draft
                             </button>
                         )}
 

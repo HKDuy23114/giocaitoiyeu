@@ -48,5 +48,8 @@
   {"characterName":"Cerydra","S1":2,"S2":2,"S3":3,"S4":3.5,"S5":4,"lightConeName":"Epoch Etched in Golden Blood","imageUrl":"images/CerydraLC.png"},
   {"characterName":"Evernight (E9)","S1":5,"S2":5,"S3":6,"S4":7.5,"S5":9,"lightConeName":"To Evernight's Stars","imageUrl":"images/EvernightLC.png"},
   {"characterName":"Dan Heng PT","S1":2,"S2":2,"S3":2.5,"S4":3,"S5":3.5,"lightConeName":"Though Worlds Apart","imageUrl":"images/PTLC.png"},
-  {"characterName":"Cyrene","S1":0,"S2":0,"S3":0,"S4":0,"S5":0,"lightConeName":"This Love, Forever","imageUrl":"images/CyreneLC.png"}
+  {"characterName":"Cyrene","S1":0,"S2":0,"S3":0,"S4":0,"S5":0,"lightConeName":"This Love, Forever","imageUrl":"images/CyreneLC.png"},
+  {"characterName":"Dahlia","S1":5,"S2":5,"S3":6,"S4":7.5,"S5":9,"lightConeName":"Never Forget Her Flame","imageUrl":"images/DahliaLC.png"},
+  {"characterName":"Sparxie","S1":2,"S2":2,"S3":2.5,"S4":3,"S5":3.5,"lightConeName":"Dazzled by a Flowery World","imageUrl":"images/SparxieLC.png"},
+  {"characterName":"Yao Guang","S1":0,"S2":0,"S3":0,"S4":0,"S5":0,"lightConeName":"When She Decided to See","imageUrl":"images/YaoGuangLC.png"}
 ]
