@@ -3,6 +3,7 @@ import HomePage from "./pages/HomePage";
 import DraftPage from "./pages/DraftPage";
 import DataPage from "./pages/DataPage";
 import DraftDemoPage from "./pages/DraftDemoPage";
+import DraftCalculator from "./pages/DraftCalculator";
 function App() {
 
     return (
@@ -10,7 +11,7 @@ function App() {
         <BrowserRouter>
 
             <Routes>
-
+                <Route path="/calculator" element={<DraftCalculator/>}/>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/data" element={<DataPage />} />
                 <Route path="/draft" element={<DraftPage />} />

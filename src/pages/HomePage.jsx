@@ -165,6 +165,13 @@ export default function HomePage() {
                         >
                             Demo Draft
                         </button>
+                        <button
+                            className="home-btn"
+                            onClick={()=>navigate("/calculator")}
+                            style={styles.button}
+                        >
+                            Calculator
+                        </button>
                     </div>
 
 
