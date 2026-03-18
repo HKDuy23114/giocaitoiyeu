@@ -101,11 +101,11 @@
   },
   {
     "characterName": "Dr.Ratio",
-    "S1": 2.0,
-    "S2": 2.0,
-    "S3": 3.0,
-    "S4": 3.0,
-    "S5": 4.0,
+    "S1": 2.5,
+    "S2": 2.5,
+    "S3": 3.5,
+    "S4": 3.5,
+    "S5": 4.5,
     "lightConeName": "Baptism of Pure Thought",
     "imageUrl": "images/DrRatioLC.png"
   },
