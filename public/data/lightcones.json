@@ -521,11 +521,11 @@
   },
   {
     "characterName": "Yao Guang",
-    "S1": 2.5,
-    "S2": 2.5,
-    "S3": 3.0,
-    "S4": 3.0,
-    "S5": 3.5,
+    "S1": 3.0,
+    "S2": 3.0,
+    "S3": 3.5,
+    "S4": 3.5,
+    "S5": 4.0,
     "lightConeName": "When She Decided to See",
     "imageUrl": "images/YaoGuangLC.png"
   }
