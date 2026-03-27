@@ -149,12 +149,6 @@ html,body{
     overflow-y: auto;
 }
 
-
-.lc-tile img{
-    width: 70px;
-    height: 70px;
-}
-
 .settings-section{
     padding:12px 16px;
     border-bottom:1px solid #1f1f1f;
@@ -187,11 +181,13 @@ html,body{
 }
 .custom-btn{
     background:#5a3caf;
-    border:none;
-    color:#fff;
-    border-radius:8px;
     padding:6px 12px;
-    cursor:pointer
+    border:none;
+    border-radius:8px;
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+    transition:background 0.2s, transform 0.2s;
 }
 .back-btn-container{
     margin-bottom:6px
@@ -278,13 +274,12 @@ html,body{
     padding:10px 12px;
 }
 
-.button-group{
-    display:flex;
-    gap:10px;
-    justify-content:flex-end;
-    margin-top:10px
-}
+.button-group {
+    display: flex;
+    gap: 8px;
 
+    flex-shrink: 0; /* 🔥 không bị co lại */
+}
 
 
 .grid-wrap {
@@ -295,15 +290,105 @@ html,body{
     margin-top: 20px;
     width: 100%;
 }
+.ban-placeholder{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#555;
+    font-size:24px;
+    font-weight:bold;
+    background:#222;
+}
 
+.ban-team{
+    margin-left: 20px;
+    background:#111;
+    border-radius:10px;
+    text-align:center;
+}
 
+.ban-team h3{
+    color:#e74c3c;
+    margin-bottom:10px;
+}
+
+.ban-list{
+    display:flex;
+    gap:10px;
+}
+
+.ban-card{
+    width:70px;
+    height:70px;
+    border-radius:8px;
+    overflow:hidden;
+    position:relative;
+    border:2px solid #e74c3c;
+}
+
+.ban-card img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:grayscale(100%);
+}
+
+.ban-overlay{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    color:#ff4d4d;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    letter-spacing:2px;
+}
+
+.ban-empty{
+    color:#777;
+}
+.top-center-row{
+    display:flex;
+    width:100%;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+/* BAN chiếm 20% */
+.ban-container{
+    width:15%;
+    display:flex;
+    justify-content:center;
+}
+
+.ban-card:has(img){
+    border:2px solid #e74c3c;
+    box-shadow:0 0 8px #e74c3c;
+}
+/* WINNER chiếm 80% */
+.winner-container{
+    width:85%;
+    display:flex;
+    justify-content:center;
+}
 .search-container {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+
+    width: 100%;
+    max-width: 1050px;
+    margin: 0 auto 10px;
+
     gap: 12px;
-    margin-bottom: 8px;
-    width: 115%;
 }
 
 
@@ -317,28 +402,20 @@ html,body{
 }
 
 .search-bar {
-    width: 52.5%;
+    flex: 1; /* 🔥 chiếm toàn bộ phần còn lại */
+    min-width: 0;
+
     background: #1e1b1b;
     border: 1px solid #2a2a2a;
     color: #fff;
     border-radius: 8px;
-    padding: 8px 10px;
+    padding: 8px 12px;
 }
 .search-bar::placeholder {
     color: #e8e4e6;
     opacity: 0.8;
 }
-.button-group {
-    display: flex;
-    gap: 6px;
-}
-.custom-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-}
+
 
 .grid div {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -452,15 +529,6 @@ html,body{
     font-family: Arial, sans-serif;
 }
 
-.time-box {
-
-    background-color: #004643;
-    padding: 6px 14px;
-    border-radius: 8px;
-    min-width: 85px;
-    text-align: center;
-    box-shadow: 0 0 8px rgba(0,0,0,0.4);
-}
 
 
 .overlay .value {
@@ -961,16 +1029,6 @@ html,body{
     text-shadow: 0 0 6px #00ffff;
 }
 
-.custom-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-}
-
-
 .btn-undo {
     background: #444;
     color: white;
@@ -1046,9 +1104,7 @@ html,body{
     transform: scale(1.05);
 }
 
-.winner-container {
-    text-align: center;
-}
+
 .winner .label {
     font-size: 24px;
     color: #00d4ff;

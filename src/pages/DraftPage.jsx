@@ -42,6 +42,8 @@ export default function DraftPage() {
     const [isLocked, setIsLocked] = useState(false);
     const nextPickIndex = draft.length;
     const currentTurn = draftOrder[nextPickIndex];
+    const [bannedCharacters, setBannedCharacters] = useState([]);
+    const [showBanModal, setShowBanModal] = useState(false);
     const closeDraft = () => {
 
         if (!confirm("Close draft and delete this room?")) return;
@@ -82,8 +84,8 @@ export default function DraftPage() {
 
     const params = new URLSearchParams(window.location.search);
 
-    const team1 = params.get("team1");
-    const team2 = params.get("team2");
+    const team1 = decodeURIComponent(params.get("team1"));
+    const team2 = decodeURIComponent(params.get("team2"));
 
 
 
@@ -101,6 +103,39 @@ export default function DraftPage() {
 
     const [timerData, setTimerData] = useState(null);
 
+    useEffect(() => {
+
+        const banRef = ref(db, "rooms/" + roomID + "/bans");
+
+        onValue(banRef, (snapshot) => {
+            const data = snapshot.val();
+
+            if (data) {
+                setBannedCharacters(data);
+            } else {
+                setBannedCharacters([]);
+            }
+        });
+
+    }, [roomID]);
+
+    const toggleBanCharacter = (character) => {
+
+        if (!isAdmin) return;
+
+        let newBan = [...bannedCharacters];
+
+        const exists = newBan.find(c => c.characterName === character.characterName);
+
+        if (exists) {
+            newBan = newBan.filter(c => c.characterName !== character.characterName);
+        } else {
+            if (newBan.length >= 2) return; // chỉ 2 ban
+            newBan.push(character);
+        }
+
+        set(ref(db, "rooms/" + roomID + "/bans"), newBan);
+    };
 
     useEffect(() => {
 
@@ -372,6 +407,8 @@ export default function DraftPage() {
     const resetDraft = () => {
 
         saveDraft([]);
+
+        set(ref(db, "rooms/" + roomID + "/bans"), []);
 
         const timerRef = ref(db, "rooms/" + roomID + "/timer");
 
@@ -660,7 +697,48 @@ export default function DraftPage() {
     return (
         <div>
             {/* toàn bộ code draft của bạn */}
+            {showBanModal && (
+                <div className="lc-modal" onClick={() => setShowBanModal(false)}>
 
+                    <div className="lc-box" onClick={(e) => e.stopPropagation()}>
+
+                        <h3>Select 2 Banned Characters</h3>
+
+                        <div className="lc-grid">
+
+                            {characters.map((c, i) => {
+
+                                const isActive = bannedCharacters.some(
+                                    b => b.characterName === c.characterName
+                                );
+
+                                return (
+                                    <div
+                                        key={i}
+                                        className={`lc-tile ${isActive ? "active" : ""}`}
+                                        onClick={() => toggleBanCharacter(c)}
+                                        style={{
+                                            opacity: isActive || bannedCharacters.length < 2 ? 1 : 0.3
+                                        }}
+                                    >
+                                        <img src={c.imageIcon}/>
+                                        <p>{c.characterName}</p>
+                                    </div>
+                                );
+                            })}
+
+                        </div>
+
+                        <div className="lc-buttons">
+                            <button onClick={() => setShowBanModal(false)}>
+                                Close
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            )}
             {showLCModal && (
 
                 <div
@@ -825,22 +903,47 @@ export default function DraftPage() {
 
                     </div>
 
+                    <div className="top-center-row">
 
-                    {/* WINNER */}
 
-                    <div className="winner-container">
-                        <div className="winner">
 
-                            <div className="label" style={{fontSize:"28px", fontWeight:"bold"}}>
+                        {/* WINNER */}
+                        <div className="winner-container">
+                            <div className="winner">
+                                <div className="label" style={{fontSize:"28px", fontWeight:"bold"}}>
+                                    {winner && (
+                                        winner === "DRAW"
+                                            ? "DRAW"
+                                            : `${winner} WIN!`
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        {/* BAN */}
+                        <div className="ban-container">
+                            <div className="ban-list">
 
-                                {winner && (
-                                    winner === "DRAW"
-                                        ? "DRAW"
-                                        : `${winner} WIN!`
-                                )}
+                                {[0,1].map((slot) => {
+
+                                    const c = bannedCharacters[slot];
+
+                                    return (
+                                        <div key={slot} className="ban-card">
+
+                                            {c ? (
+                                                <>
+                                                    <img src={c.imageIcon} />
+                                                    <div className="ban-overlay">BAN</div>
+                                                </>
+                                            ) : (
+                                                <div className="ban-placeholder">?</div>
+                                            )}
+
+                                        </div>
+                                    );
+                                })}
 
                             </div>
-
                         </div>
                     </div>
 
@@ -1002,6 +1105,15 @@ export default function DraftPage() {
                                 Close Draft
                             </button>
                         )}
+                        {isAdmin && (
+                            <button
+                                className="custom-btn"
+                                onClick={() => setShowBanModal(true)}
+                                style={{background:"#8e44ad"}}
+                            >
+                                Ban Character
+                            </button>
+                        )}
 
                     </div>
 
@@ -1018,21 +1130,25 @@ export default function DraftPage() {
                             c => c.characterName === character.characterName
                         );
 
+                        const isBanned = bannedCharacters.some(
+                            c => c.characterName === character.characterName
+                        );
+
                         return (
 
                             <div
                                 key={index}
                                 className="tile"
-                                onClick={() => !isPicked && canPick && pickCharacter(character)}
+                                onClick={() => !isPicked && !isBanned && canPick && pickCharacter(character)}
                                 style={{
                                     background:
                                         character.rarity === 5
                                             ? "#e6b741"
                                             : "#9b59b6",
 
-                                    opacity: !canPick || isPicked ? 0.35 : 1,
-                                    pointerEvents: !canPick || isPicked ? "none" : "auto",
-                                    filter: isPicked ? "grayscale(100%) brightness(100%)" : "none"
+                                    opacity: !canPick || isPicked || isBanned ? 0.35 : 1,
+                                    pointerEvents: !canPick || isPicked || isBanned ? "none" : "auto",
+                                    filter: isPicked || isBanned ? "grayscale(100%) brightness(100%)" : "none"
                                 }}
                             >
 

@@ -11,6 +11,7 @@ export default function HomePage() {
     const [passwordInput, setPasswordInput] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const MAX_ATTEMPT = 5;
+    const [copied, setCopied] = useState(false);
     const data = JSON.parse(localStorage.getItem("draftLogin"));
     const lockedToday =
         data &&
@@ -23,14 +24,13 @@ export default function HomePage() {
             Math.random().toString(36).substring(2, 8);
 
         const hostLink =
-            `${window.location.origin}/draft?room=${roomID}&team1=${team1Name}&team2=${team2Name}&role=host`;
+            `${window.location.origin}/draft?room=${roomID}&team1=${encodeURIComponent(team1Name)}&team2=${encodeURIComponent(team2Name)}&role=host`;
 
         const team1Link =
-            `${window.location.origin}/draft?room=${roomID}&team1=${team1Name}&team2=${team2Name}&role=team1`;
+            `${window.location.origin}/draft?room=${roomID}&team1=${encodeURIComponent(team1Name)}&team2=${encodeURIComponent(team2Name)}&role=team1`;
 
         const team2Link =
-            `${window.location.origin}/draft?room=${roomID}&team1=${team1Name}&team2=${team2Name}&role=team2`;
-
+            `${window.location.origin}/draft?room=${roomID}&team1=${encodeURIComponent(team1Name)}&team2=${encodeURIComponent(team2Name)}&role=team2`;
         set(ref(db, "rooms/" + roomID), {
             draft: [],
             team1Name: team1Name,
@@ -101,9 +101,12 @@ export default function HomePage() {
 
     const copyLink = (link) => {
         navigator.clipboard.writeText(link);
-        alert("Copied!");
-    };
+        setCopied(true);
 
+        setTimeout(() => {
+            setCopied(false);
+        }, 1500);
+    };
     return (
 
         <div style={styles.page}>
@@ -231,9 +234,25 @@ export default function HomePage() {
                 )}
 
             </div>
-
+            {/* 👇 ĐẶT Ở ĐÂY */}
+            {copied && (
+                <div style={{
+                    position: "fixed",
+                    bottom: "20px",
+                    right: "20px",
+                    background: "#22c55e",
+                    color: "white",
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    boxShadow: "0 0 10px rgba(0,0,0,0.4)"
+                }}>
+                    Copied!
+                </div>
+            )}
         </div>
+
     );
+
 }
 
 function LinkRow({ title, link, copyLink }) {

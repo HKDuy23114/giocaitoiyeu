@@ -101,11 +101,11 @@
   },
   {
     "characterName": "Dr.Ratio",
-    "S1": 2.5,
-    "S2": 2.5,
-    "S3": 3.5,
-    "S4": 3.5,
-    "S5": 4.5,
+    "S1": 3.0,
+    "S2": 3.0,
+    "S3": 4.0,
+    "S4": 4.0,
+    "S5": 5.0,
     "lightConeName": "Baptism of Pure Thought",
     "imageUrl": "images/DrRatioLC.png"
   },
@@ -531,11 +531,11 @@
   },
   {
     "characterName": "Ashveil",
-    "S1": 3.0,
-    "S2": 3.5,
-    "S3": 4.0,
-    "S4": 4.5,
-    "S5": 5.0,
+    "S1": 4.0,
+    "S2": 4.5,
+    "S3": 5.0,
+    "S4": 5.5,
+    "S5": 6.0,
     "lightConeName": "The Finale of a Lie",
     "imageUrl": "images/AshveilLC.png"
   }
