@@ -11,11 +11,11 @@
   },
   {
     "characterName": "The Herta",
-    "S1": 4.0,
-    "S2": 4.0,
-    "S3": 5.0,
-    "S4": 6.0,
-    "S5": 7.0,
+    "S1": 3.5,
+    "S2": 3.5,
+    "S3": 4.5,
+    "S4": 5.5,
+    "S5": 6.5,
     "lightConeName": "Into the Unreachable Veil",
     "imageUrl": "images/TheHertaLC.png"
   },
@@ -461,10 +461,10 @@
   },
   {
     "characterName": "Cerydra",
-    "S1": 1.5,
-    "S2": 1.5,
-    "S3": 2.5,
-    "S4": 3.0,
+    "S1": 2.0,
+    "S2": 2.0,
+    "S3": 3.0,
+    "S4": 3.5,
     "S5": 4.5,
     "lightConeName": "Epoch Etched in Golden Blood",
     "imageUrl": "images/CerydraLC.png"
@@ -528,5 +528,15 @@
     "S5": 4.0,
     "lightConeName": "When She Decided to See",
     "imageUrl": "images/YaoGuangLC.png"
+  },
+  {
+    "characterName": "Ashveil",
+    "S1": 3.0,
+    "S2": 3.5,
+    "S3": 4.0,
+    "S4": 4.5,
+    "S5": 5.0,
+    "lightConeName": "The Finale of a Lie",
+    "imageUrl": "images/AshveilLC.png"
   }
 ]
