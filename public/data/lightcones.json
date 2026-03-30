@@ -51,11 +51,11 @@
   },
   {
     "characterName": "Anaxa",
-    "S1": 3.0,
-    "S2": 3.0,
-    "S3": 4.0,
-    "S4": 4.5,
-    "S5": 5.0,
+    "S1": 2.5,
+    "S2": 2.5,
+    "S3": 3.5,
+    "S4": 4.0,
+    "S5": 4.5,
     "lightConeName": "Life Should Be Cast to Flames",
     "imageUrl": "images/AnaxaLC.png"
   },
@@ -131,11 +131,11 @@
   },
   {
     "characterName": "Dan Heng IL",
-    "S1": 1.5,
-    "S2": 1.5,
-    "S3": 2.0,
-    "S4": 2.5,
-    "S5": 3.0,
+    "S1": 1.0,
+    "S2": 1.0,
+    "S3": 1.5,
+    "S4": 2.0,
+    "S5": 2.5,
     "lightConeName": "Brighter Than the Sun",
     "imageUrl": "images/DanHengILLC.png"
   },
@@ -421,11 +421,11 @@
   },
   {
     "characterName": "Topaz & Numby",
-    "S1": 1.0,
-    "S2": 1.0,
-    "S3": 2.0,
-    "S4": 3.0,
-    "S5": 4.0,
+    "S1": 1.5,
+    "S2": 1.5,
+    "S3": 2.5,
+    "S4": 3.5,
+    "S5": 4.5,
     "lightConeName": "Worrisome, Blissful",
     "imageUrl": "images/Topaz&NumbyLC.png"
   },
@@ -538,5 +538,15 @@
     "S5": 6.0,
     "lightConeName": "The Finale of a Lie",
     "imageUrl": "images/AshveilLC.png"
+  },
+  {
+    "characterName": "Battle Pass Break (Bp)",
+    "S1": 0.5,
+    "S2": 0.5,
+    "S3": 0.5,
+    "S4": 1.0,
+    "S5": 1.0,
+    "lightConeName": "In Pursuit of the Wind",
+    "imageUrl": "images/BpBreakLC.png"
   }
 ]
