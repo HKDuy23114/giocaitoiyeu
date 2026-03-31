@@ -6,6 +6,15 @@ import {db} from "../firebase";
 import {useSearchParams} from "react-router-dom";
 
 export default function DraftPage() {
+    const [banMode, setBanMode] = useState("global");
+// "global" | "team"
+
+    const [showBanModeModal, setShowBanModeModal] = useState(false);
+
+    const [teamBans, setTeamBans] = useState({
+        team1: [],
+        team2: []
+    });
 
     const draftOrder = [
         "team1", //1
@@ -42,8 +51,18 @@ export default function DraftPage() {
     const [isLocked, setIsLocked] = useState(false);
     const nextPickIndex = draft.length;
     const currentTurn = draftOrder[nextPickIndex];
-    const [bannedCharacters, setBannedCharacters] = useState([]);
+    const [bannedCharacters, setBannedCharacters] = useState([]); // global
     const [showBanModal, setShowBanModal] = useState(false);
+
+    const viewerTeam =
+        role === "team1" ? "team1" :
+            role === "team2" ? "team2" :
+                currentTurn;
+    const viewerTeamBans = teamBans[viewerTeam] || [];
+    const enemyBans =
+        currentTurn === "team1"
+            ? (teamBans.team2 || [])
+            : (teamBans.team1 || []);
     const closeDraft = () => {
 
         if (!confirm("Close draft and delete this room?")) return;
@@ -102,21 +121,13 @@ export default function DraftPage() {
     const [team2Penalty, setTeam2Penalty] = useState(0);
 
     const [timerData, setTimerData] = useState(null);
-
     useEffect(() => {
-
         const banRef = ref(db, "rooms/" + roomID + "/bans");
 
         onValue(banRef, (snapshot) => {
             const data = snapshot.val();
-
-            if (data) {
-                setBannedCharacters(data);
-            } else {
-                setBannedCharacters([]);
-            }
+            setBannedCharacters(data || []);
         });
-
     }, [roomID]);
 
     const toggleBanCharacter = (character) => {
@@ -363,9 +374,31 @@ export default function DraftPage() {
 
     // PICK CHARACTER
     const pickCharacter = (character) => {
+        const nextIndex = draft.length;
+        const isBanPhase = banSlots.includes(nextIndex);
+
         if (isLocked) return;
         if (!canPick) return;
+
+        // ❌ không cho trùng
         if (draft.find(c => c.characterName === character.characterName)) return;
+
+        // ✅ GLOBAL BAN: luôn cấm
+        const isGloballyBanned = bannedCharacters.some(
+            c => c.characterName === character.characterName
+        );
+
+        if (!isBanPhase && isGloballyBanned) return;
+
+        // ✅ TEAM BAN: CHỈ áp dụng ở PICK
+        if (!isBanPhase && banMode === "team") {
+            const isTeamBanned =
+                currentTurn === "team1"
+                    ? (teamBans.team1 || []).some(c => c.characterName === character.characterName)
+                    : (teamBans.team2 || []).some(c => c.characterName === character.characterName);
+
+            if (isTeamBanned) return;
+        }
 
         if (draft.length >= 20) return;
 
@@ -380,7 +413,6 @@ export default function DraftPage() {
             pointE4: character.E4,
             pointE5: character.E5,
             pointE6: character.E6,
-
             eidolon: "E0"
         };
 
@@ -409,7 +441,11 @@ export default function DraftPage() {
         saveDraft([]);
 
         set(ref(db, "rooms/" + roomID + "/bans"), []);
-
+        set(ref(db, "rooms/" + roomID + "/teamBans"), {
+            team1: [],
+            team2: []
+        });
+        set(ref(db, "rooms/" + roomID + "/banMode"), "global");
         const timerRef = ref(db, "rooms/" + roomID + "/timer");
 
         set(timerRef,{
@@ -694,41 +730,215 @@ export default function DraftPage() {
 
     }
 
+    const toggleTeamBan = (team, character) => {
+
+        if (!isAdmin) return;
+
+        let newData = { ...teamBans };
+
+        const exists = newData[team].find(
+            c => c.characterName === character.characterName
+        );
+
+        if (exists) {
+            newData[team] = newData[team].filter(
+                c => c.characterName !== character.characterName
+            );
+        } else {
+            if (newData[team].length >= 2) return;
+            newData[team].push(character);
+        }
+
+        // 🔥 SAVE FIREBASE
+        set(ref(db, "rooms/" + roomID + "/teamBans"), newData);
+    };
+
+    useEffect(() => {
+        const teamBanRef = ref(db, "rooms/" + roomID + "/teamBans");
+
+        onValue(teamBanRef, (snapshot) => {
+            const data = snapshot.val();
+
+            if (data) {
+                setTeamBans({
+                    team1: data.team1 || [],
+                    team2: data.team2 || []
+                });
+            } else {
+                setTeamBans({ team1: [], team2: [] });
+            }
+        });
+    }, [roomID]);
+
+    useEffect(() => {
+        const teamBanRef = ref(db, "rooms/" + roomID + "/teamBans");
+
+        onValue(teamBanRef, (snapshot) => {
+            const data = snapshot.val();
+
+            if (data) {
+                setTeamBans({
+                    team1: data.team1 || [],
+                    team2: data.team2 || []
+                });
+            } else {
+                // 👇 INIT luôn trên firebase
+                const defaultData = { team1: [], team2: [] };
+                set(teamBanRef, defaultData);
+                setTeamBans(defaultData);
+            }
+        });
+    }, [roomID]);
+
+    useEffect(() => {
+        const banModeRef = ref(db, "rooms/" + roomID + "/banMode");
+
+        onValue(banModeRef, (snapshot) => {
+            const data = snapshot.val();
+
+            if (data) {
+                setBanMode(data);
+            } else {
+                set(banModeRef, "global");
+                setBanMode("global");
+            }
+        });
+    }, [roomID]);
     return (
         <div>
             {/* toàn bộ code draft của bạn */}
+            {showBanModeModal && (
+                <div className="lc-modal" onClick={() => setShowBanModeModal(false)}>
+                    <div className="lc-box" onClick={(e) => e.stopPropagation()}>
+
+                        <h3>Select Ban Mode</h3>
+
+                        <div className="lc-buttons">
+
+                            <button
+                                onClick={() => {
+                                    set(ref(db, "rooms/" + roomID + "/banMode"), "global");
+                                    setShowBanModeModal(false);
+                                    setShowBanModal(true);
+                                }}
+                            >
+                                Global Ban (2 bans chung)
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    set(ref(db, "rooms/" + roomID + "/banMode"), "team");
+                                    setShowBanModeModal(false);
+                                    setShowBanModal(true);
+                                }}
+                            >
+                                Team Ban (mỗi team 2 bans)
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+            )}
             {showBanModal && (
                 <div className="lc-modal" onClick={() => setShowBanModal(false)}>
 
                     <div className="lc-box" onClick={(e) => e.stopPropagation()}>
 
-                        <h3>Select 2 Banned Characters</h3>
+                        {banMode === "global" && (
+                            <>
+                                <h3>Select 2 Banned Characters</h3>
 
-                        <div className="lc-grid">
+                                <div className="lc-grid">
 
-                            {characters.map((c, i) => {
+                                    {characters.map((c, i) => {
 
-                                const isActive = bannedCharacters.some(
-                                    b => b.characterName === c.characterName
-                                );
+                                        const isActive = bannedCharacters.some(
+                                            b => b.characterName === c.characterName
+                                        );
 
-                                return (
-                                    <div
-                                        key={i}
-                                        className={`lc-tile ${isActive ? "active" : ""}`}
-                                        onClick={() => toggleBanCharacter(c)}
-                                        style={{
-                                            opacity: isActive || bannedCharacters.length < 2 ? 1 : 0.3
-                                        }}
-                                    >
-                                        <img src={c.imageIcon}/>
-                                        <p>{c.characterName}</p>
-                                    </div>
-                                );
-                            })}
+                                        return (
+                                            <div
+                                                key={i}
+                                                className={`lc-tile ${isActive ? "active" : ""}`}
+                                                onClick={() => toggleBanCharacter(c)}
+                                                style={{
+                                                    opacity: isActive || bannedCharacters.length < 2 ? 1 : 0.3
+                                                }}
+                                            >
+                                                <img src={c.imageIcon}/>
+                                                <p>{c.characterName}</p>
+                                            </div>
+                                        );
+                                    })}
 
-                        </div>
+                                </div>
+                            </>
+                        )}
 
+                        {banMode === "team" && (
+                            <>
+                                <h3>Team 1 Ban</h3>
+
+                                <div className="lc-grid">
+                                    {characters.map((c, i) => {
+
+                                        const isActive = (teamBans.team1 || []).some(
+                                            b => b.characterName === c.characterName
+                                        )|| false;
+
+                                        return (
+                                            <div
+                                                key={i}
+                                                className={`lc-tile ${isActive ? "active" : ""}`}
+                                                onClick={() => toggleTeamBan("team1", c)}
+                                                style={{
+                                                    opacity: isActive || (teamBans.team1 || []).length < 2 ? 1 : 0.3,
+                                                    pointerEvents:
+                                                        isAdmin || viewerTeam === "team1"
+                                                            ? "auto"
+                                                            : "none"
+                                                }}
+                                            >
+                                                <img src={c.imageIcon}/>
+                                                <p>{c.characterName}</p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <h3>Team 2 Ban</h3>
+
+                                <div className="lc-grid">
+                                    {characters.map((c, i) => {
+
+                                        const isActive = (teamBans.team2 || []).some(
+                                            b => b.characterName === c.characterName
+                                        ) || false;
+
+                                        return (
+                                            <div
+                                                key={i}
+                                                className={`lc-tile ${isActive ? "active" : ""}`}
+                                                onClick={() => toggleTeamBan("team2", c)}
+                                                style={{
+                                                    opacity: isActive || (teamBans.team2 || []).length < 2 ? 1 : 0.3,
+                                                    pointerEvents:
+                                                        isAdmin || viewerTeam === "team2"
+                                                            ? "auto"
+                                                            : "none"
+                                                }}
+                                            >
+                                                <img src={c.imageIcon}/>
+                                                <p>{c.characterName}</p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </>
+                        )}
+
+                        {/* ✅ nút Close đặt ngoài để dùng chung */}
                         <div className="lc-buttons">
                             <button onClick={() => setShowBanModal(false)}>
                                 Close
@@ -736,7 +946,6 @@ export default function DraftPage() {
                         </div>
 
                     </div>
-
                 </div>
             )}
             {showLCModal && (
@@ -863,7 +1072,27 @@ export default function DraftPage() {
                             <div className={`team-header blue ${timerData?.activeTeam === "team1"?"active-turn":""}`}>
                                 {team1}
                             </div>
+                            {banMode === "team" && (
+                                <div className="team-ban-row">
+                                    {[0,1].map((slot) => {
 
+                                        const c = (teamBans.team1 || [])[slot];
+
+                                        return (
+                                            <div key={slot} className="ban-card">
+                                                {c ? (
+                                                    <>
+                                                        <img src={c.imageIcon}/>
+                                                        <div className="ban-overlay">BAN</div>
+                                                    </>
+                                                ) : (
+                                                    <div className="ban-placeholder">?</div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                )}
                             <div className="team-times">
 
 
@@ -920,31 +1149,33 @@ export default function DraftPage() {
                             </div>
                         </div>
                         {/* BAN */}
-                        <div className="ban-container">
-                            <div className="ban-list">
+                        {banMode === "global" && (
+                            <div className="ban-container">
+                                <div className="ban-list">
 
-                                {[0,1].map((slot) => {
+                                    {[0,1].map((slot) => {
 
-                                    const c = bannedCharacters[slot];
+                                        const c = bannedCharacters[slot];
 
-                                    return (
-                                        <div key={slot} className="ban-card">
+                                        return (
+                                            <div key={slot} className="ban-card">
 
-                                            {c ? (
-                                                <>
-                                                    <img src={c.imageIcon} />
-                                                    <div className="ban-overlay">BAN</div>
-                                                </>
-                                            ) : (
-                                                <div className="ban-placeholder">?</div>
-                                            )}
+                                                {c ? (
+                                                    <>
+                                                        <img src={c.imageIcon} />
+                                                        <div className="ban-overlay">BAN</div>
+                                                    </>
+                                                ) : (
+                                                    <div className="ban-placeholder">?</div>
+                                                )}
 
-                                        </div>
-                                    );
-                                })}
+                                            </div>
+                                        );
+                                    })}
 
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
 
@@ -957,7 +1188,27 @@ export default function DraftPage() {
                             <div className={`team-header red ${timerData?.activeTeam === "team2"?"active-turn":""}`}>
                                 {team2}
                             </div>
+                            {banMode === "team" && (
+                                <div className="team-ban-row">
+                                    {[0,1].map((slot) => {
 
+                                        const c = (teamBans.team2 || [])[slot];
+
+                                        return (
+                                            <div key={slot} className="ban-card">
+                                                {c ? (
+                                                    <>
+                                                        <img src={c.imageIcon}/>
+                                                        <div className="ban-overlay">BAN</div>
+                                                    </>
+                                                ) : (
+                                                    <div className="ban-placeholder">?</div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                )}
                             <div className="team-times">
 
                                 <div className="time-box">
@@ -1108,7 +1359,7 @@ export default function DraftPage() {
                         {isAdmin && (
                             <button
                                 className="custom-btn"
-                                onClick={() => setShowBanModal(true)}
+                                onClick={() => setShowBanModeModal(true)}
                                 style={{background:"#8e44ad"}}
                             >
                                 Ban Character
@@ -1130,25 +1381,37 @@ export default function DraftPage() {
                             c => c.characterName === character.characterName
                         );
 
-                        const isBanned = bannedCharacters.some(
+                        const isGloballyBanned = bannedCharacters.some(
                             c => c.characterName === character.characterName
                         );
+
+
+                        const nextIndex = draft.length;
+                        const isBanPhase = banSlots.includes(nextIndex);
+
+                        const isTeamBanned =
+                            currentTurn === "team1"
+                                ? (teamBans.team1 || []).some(c => c.characterName === character.characterName)
+                                : (teamBans.team2 || []).some(c => c.characterName === character.characterName);
+
+                        const isBanned =
+                            isGloballyBanned ||
+                            (!isBanPhase && banMode === "team" && isTeamBanned);
 
                         return (
 
                             <div
                                 key={index}
                                 className="tile"
-                                onClick={() => !isPicked && !isBanned && canPick && pickCharacter(character)}
+                                onClick={() => {
+                                    if (isPicked || isBanned || !canPick) return;
+                                    pickCharacter(character);
+                                }}
                                 style={{
-                                    background:
-                                        character.rarity === 5
-                                            ? "#e6b741"
-                                            : "#9b59b6",
-
-                                    opacity: !canPick || isPicked || isBanned ? 0.35 : 1,
-                                    pointerEvents: !canPick || isPicked || isBanned ? "none" : "auto",
-                                    filter: isPicked || isBanned ? "grayscale(100%) brightness(100%)" : "none"
+                                    background: character.rarity === 5 ? "#e6b741" : "#9b59b6",
+                                    opacity: (isPicked || isBanned || !canPick) ? 0.35 : 1,
+                                    pointerEvents: (isPicked || isBanned || !canPick) ? "none" : "auto",
+                                    filter: (isPicked || isBanned) ? "grayscale(100%) brightness(100%)" : "none"
                                 }}
                             >
 

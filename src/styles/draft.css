@@ -368,7 +368,13 @@ html,body{
     display:flex;
     justify-content:center;
 }
-
+.team-ban-row {
+    display: flex;
+    flex-direction: row;   /* 👈 QUAN TRỌNG */
+    gap: 8px;              /* khoảng cách giữa 2 ô */
+    justify-content: center; /* căn giữa (tuỳ thích) */
+    margin-top: 6px;
+}
 .ban-card:has(img){
     border:2px solid #e74c3c;
     box-shadow:0 0 8px #e74c3c;

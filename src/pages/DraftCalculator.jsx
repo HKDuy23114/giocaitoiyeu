@@ -7,10 +7,10 @@ export default function DraftCalculator() {
     const [charSearch, setCharSearch] = useState("");
     const [lcSearch, setLcSearch] = useState("");
     const [draft, setDraft] = useState([null, null, null, null]);
-    const [selectedSlot, setSelectedSlot] = useState(null);
 
     const [showLCModal, setShowLCModal] = useState(false);
     const [selectedLC, setSelectedLC] = useState(null);
+    const [lcSlot, setLcSlot] = useState(null);
 
     const [cycle, setCycle] = useState(0);
 
@@ -27,11 +27,9 @@ export default function DraftCalculator() {
         load();
     }, []);
 
+    // ✅ ALWAYS pick từ trái qua phải, không overwrite
     const pickCharacter = (char) => {
-        let slot = selectedSlot;
-        if (slot === null) {
-            slot = draft.findIndex((s) => !s);
-        }
+        const slot = draft.findIndex((s) => !s);
         if (slot === -1) return;
 
         const newDraft = [...draft];
@@ -49,8 +47,10 @@ export default function DraftCalculator() {
             eidolon: "E0",
             superimposition: "S1",
         };
+
         setDraft(newDraft);
-        setSelectedSlot(null);
+
+        setCharSearch("");
     };
 
     const removeCharacter = (slot) => {
@@ -65,24 +65,29 @@ export default function DraftCalculator() {
 
     const openLCModal = (slot) => {
         if (!draft[slot]) return;
-        setSelectedSlot(slot);
+
+        setLcSlot(slot);
         setSelectedLC(null);
+        setLcSearch(""); // 🔥 reset search mỗi lần mở
         setShowLCModal(true);
     };
 
     const confirmLC = () => {
-        if (selectedSlot === null) return;
+        if (lcSlot === null || !selectedLC) return;
+
         const newDraft = [...draft];
 
         if (selectedLC.lightConeName === "none") {
-            newDraft[selectedSlot].lightCone = null;
-            newDraft[selectedSlot].lightConeImage = null;
+            newDraft[lcSlot].lightCone = null;
+            newDraft[lcSlot].lightConeImage = null;
         } else {
-            newDraft[selectedSlot].lightCone = selectedLC;
-            newDraft[selectedSlot].lightConeImage = selectedLC.imageUrl;
+            newDraft[lcSlot].lightCone = selectedLC;
+            newDraft[lcSlot].lightConeImage = selectedLC.imageUrl;
         }
+
         setDraft(newDraft);
         setShowLCModal(false);
+        setLcSearch("");
     };
 
     const changeEidolon = (slot, value) => {
@@ -101,18 +106,22 @@ export default function DraftCalculator() {
         let total = 0;
         draft.forEach((char) => {
             if (!char) return;
+
             const charPoint = char["point" + char.eidolon] || 0;
             const lcPoint =
                 char.lightCone && char.superimposition
                     ? char.lightCone[char.superimposition] || 0
                     : 0;
+
             total += charPoint + lcPoint;
         });
+
         total += cycle * 5;
         return total;
     };
 
     const totalPoint = calculateTotal();
+
     const filteredCharacters = characters.filter((c) =>
         c.characterName.toLowerCase().includes(charSearch.toLowerCase())
     );
@@ -120,32 +129,28 @@ export default function DraftCalculator() {
     const filteredLightcones = lightcones.filter((lc) =>
         lc.characterName.toLowerCase().includes(lcSearch.toLowerCase())
     );
+
     return (
         <div className="calc-page">
             <div className="calc-container">
 
-                <h1 style={{marginBottom:"30px",textAlign:"center"}}>
+                <h1 style={{ marginBottom: "30px", textAlign: "center" }}>
                     Draft Calculator
                 </h1>
 
                 <div className="top-layout">
 
-                    {/* LEFT SIDE */}
+                    {/* LEFT */}
                     <div className="left-panel">
 
-                        {/* SLOT AREA */}
                         <div className="slot-area">
+                            {draft.map((char, index) => {
 
-                            {draft.map((char,index)=>{
-
-                                if(!char){
-                                    return(
+                                if (!char) {
+                                    return (
                                         <div key={index} className="slot-column">
 
-                                            <div
-                                                onClick={()=>setSelectedSlot(index)}
-                                                className={`slot-box ${selectedSlot===index?"selected":""}`}
-                                            >
+                                            <div className="slot-box">
                                                 Empty Slot
                                             </div>
 
@@ -154,18 +159,17 @@ export default function DraftCalculator() {
                                             </button>
 
                                         </div>
-                                    )
+                                    );
                                 }
 
-                                const charPoint = char["point"+char.eidolon]
+                                const charPoint = char["point" + char.eidolon];
 
                                 const lcPoint =
                                     char.lightCone && char.superimposition
                                         ? char.lightCone[char.superimposition] || 0
-                                        : 0
+                                        : 0;
 
-                                return(
-
+                                return (
                                     <div key={index} className="slot-column">
 
                                         <div className="slot-box filled">
@@ -178,7 +182,7 @@ export default function DraftCalculator() {
 
                                             <select
                                                 value={char.eidolon}
-                                                onChange={(e)=>changeEidolon(index,e.target.value)}
+                                                onChange={(e) => changeEidolon(index, e.target.value)}
                                                 className="eidolon-select"
                                             >
                                                 <option>E0</option>
@@ -195,28 +199,28 @@ export default function DraftCalculator() {
                                             </div>
 
                                             <div
-                                                onClick={()=>openLCModal(index)}
+                                                onClick={() => openLCModal(index)}
                                                 className="lc-thumb"
                                             >
-                                                {char.lightConeImage &&(
+                                                {char.lightConeImage && (
                                                     <img
                                                         src={char.lightConeImage}
-                                                        style={{width:"100%",height:"100%",objectFit:"cover"}}
+                                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                                         alt="LC"
                                                     />
                                                 )}
                                             </div>
 
-                                            {char.lightCone &&(
+                                            {char.lightCone && (
                                                 <div className="lc-point">
                                                     {lcPoint}
                                                 </div>
                                             )}
 
-                                            {char.lightCone &&(
+                                            {char.lightCone && (
                                                 <select
                                                     value={char.superimposition}
-                                                    onChange={(e)=>changeSuperimposition(index,e.target.value)}
+                                                    onChange={(e) => changeSuperimposition(index, e.target.value)}
                                                     className="super-select"
                                                 >
                                                     <option>S1</option>
@@ -230,32 +234,28 @@ export default function DraftCalculator() {
                                         </div>
 
                                         <button
-                                            onClick={()=>removeCharacter(index)}
+                                            onClick={() => removeCharacter(index)}
                                             className="slot-delete"
                                         >
                                             Delete
                                         </button>
 
                                     </div>
-                                )
-
+                                );
                             })}
-
                         </div>
 
-
-                        {/* CONTROL PANEL - nằm dưới slot */}
                         <div className="control-panel">
 
-                            <label style={{fontWeight:600}}>Cycle</label>
+                            <label style={{ fontWeight: 600 }}>Cycle</label>
 
                             <input
                                 type="number"
                                 value={cycle}
-                                onChange={(e)=>setCycle(Number(e.target.value))}
+                                onChange={(e) => setCycle(Number(e.target.value))}
                             />
 
-                            <h2 style={{margin:0}}>
+                            <h2 style={{ margin: 0 }}>
                                 Total: {totalPoint.toFixed(2)}
                             </h2>
 
@@ -270,83 +270,79 @@ export default function DraftCalculator() {
 
                     </div>
 
-
-                    {/* RIGHT SIDE */}
+                    {/* RIGHT */}
                     <div className="char-panel">
 
                         <h2>Characters</h2>
+
                         <input
                             type="text"
                             placeholder="Search character..."
                             value={charSearch}
-                            onChange={(e)=>setCharSearch(e.target.value)}
+                            onChange={(e) => setCharSearch(e.target.value)}
                             className="search-input"
                         />
-                        <div className="char-grid">
 
-                            {filteredCharacters.map((c,i)=>(
+                        <div className="char-grid">
+                            {filteredCharacters.map((c, i) => (
                                 <img
                                     key={i}
                                     src={c.imageIcon}
                                     className="char-icon"
-                                    onClick={()=>pickCharacter(c)}
+                                    onClick={() => pickCharacter(c)}
                                     alt={c.characterName}
                                 />
                             ))}
-
                         </div>
 
                     </div>
 
                 </div>
 
-
-                {/* LIGHTCONE MODAL */}
-                {showLCModal &&(
-
-                    <div
-                        className="lc-modal"
-                        onClick={()=>setShowLCModal(false)}
-                    >
+                {/* LC MODAL */}
+                {showLCModal && (
+                    <div className="lc-modal" onClick={() => setShowLCModal(false)}>
 
                         <div
                             className="lc-box"
-                            onClick={(e)=>e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                         >
 
                             <h2>Select Lightcone</h2>
+
                             <input
                                 type="text"
                                 placeholder="Search lightcone..."
                                 value={lcSearch}
-                                onChange={(e)=>setLcSearch(e.target.value)}
+                                onChange={(e) => setLcSearch(e.target.value)}
                                 className="search-input"
                             />
+
                             <div className="lc-grid">
 
                                 <div
-                                    onClick={()=>setSelectedLC({lightConeName:"none"})}
+                                    onClick={() => setSelectedLC({ lightConeName: "none" })}
                                     style={{
-                                        border:"1px solid #999",
-                                        height:"115px",
-                                        display:"flex",
-                                        alignItems:"center",
-                                        justifyContent:"center",
-                                        borderRadius:"8px",
-                                        cursor:"pointer"
+                                        border: "1px solid #999",
+                                        height: "115px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        borderRadius: "8px",
+                                        cursor: "pointer"
                                     }}
                                 >
                                     None
                                 </div>
 
-                                {filteredLightcones.map((lc,i)=>(
+                                {filteredLightcones.map((lc, i) => (
                                     <img
                                         key={i}
                                         src={lc.imageUrl}
                                         className={`lc-icon ${
                                             selectedLC?.lightConeName === lc.lightConeName ? "selected" : ""
                                         }`}
-                                        onClick={()=>setSelectedLC(lc)}
+                                        onClick={() => setSelectedLC(lc)}
                                         alt={lc.lightConeName}
                                     />
                                 ))}
@@ -354,21 +350,18 @@ export default function DraftCalculator() {
                             </div>
 
                             <div className="lc-buttons">
-
-                                <button onClick={()=>setShowLCModal(false)}>
+                                <button onClick={() => setShowLCModal(false)}>
                                     Cancel
                                 </button>
 
                                 <button onClick={confirmLC}>
                                     Confirm
                                 </button>
-
                             </div>
 
                         </div>
 
                     </div>
-
                 )}
 
             </div>
