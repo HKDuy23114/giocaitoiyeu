@@ -27,28 +27,29 @@ export default function DraftCalculator() {
         load();
     }, []);
 
-    // ✅ ALWAYS pick từ trái qua phải, không overwrite
     const pickCharacter = (char) => {
-        const slot = draft.findIndex((s) => !s);
-        if (slot === -1) return;
+        setDraft((prevDraft) => {
+            const slot = prevDraft.findIndex((s) => !s);
+            if (slot === -1) return prevDraft;
 
-        const newDraft = [...draft];
-        newDraft[slot] = {
-            characterName: char.characterName,
-            imageFull: char.imageFull,
-            rarity: char.rarity,
-            pointE0: char.E0,
-            pointE1: char.E1,
-            pointE2: char.E2,
-            pointE3: char.E3,
-            pointE4: char.E4,
-            pointE5: char.E5,
-            pointE6: char.E6,
-            eidolon: "E0",
-            superimposition: "S1",
-        };
+            const newDraft = [...prevDraft];
+            newDraft[slot] = {
+                characterName: char.characterName,
+                imageFull: char.imageFull,
+                rarity: char.rarity,
+                pointE0: char.E0,
+                pointE1: char.E1,
+                pointE2: char.E2,
+                pointE3: char.E3,
+                pointE4: char.E4,
+                pointE5: char.E5,
+                pointE6: char.E6,
+                eidolon: "E0",
+                superimposition: "S1",
+            };
 
-        setDraft(newDraft);
+            return newDraft;
+        });
 
         setCharSearch("");
     };
@@ -75,17 +76,20 @@ export default function DraftCalculator() {
     const confirmLC = () => {
         if (lcSlot === null || !selectedLC) return;
 
-        const newDraft = [...draft];
+        setDraft((prevDraft) => {
+            const newDraft = [...prevDraft];
 
-        if (selectedLC.lightConeName === "none") {
-            newDraft[lcSlot].lightCone = null;
-            newDraft[lcSlot].lightConeImage = null;
-        } else {
-            newDraft[lcSlot].lightCone = selectedLC;
-            newDraft[lcSlot].lightConeImage = selectedLC.imageUrl;
-        }
+            if (selectedLC.lightConeName === "none") {
+                newDraft[lcSlot].lightCone = null;
+                newDraft[lcSlot].lightConeImage = null;
+            } else {
+                newDraft[lcSlot].lightCone = selectedLC;
+                newDraft[lcSlot].lightConeImage = selectedLC.imageUrl;
+            }
 
-        setDraft(newDraft);
+            return newDraft;
+        });
+
         setShowLCModal(false);
         setLcSearch("");
     };
