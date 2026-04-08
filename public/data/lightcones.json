@@ -121,11 +121,11 @@
   },
   {
     "characterName": "Himeko",
-    "S1": 0.5,
-    "S2": 0.5,
-    "S3": 1.0,
-    "S4": 1.0,
-    "S5": 1.5,
+    "S1": 0.0,
+    "S2": 0.0,
+    "S3": 0.5,
+    "S4": 0.5,
+    "S5": 1.0,
     "lightConeName": "Night on the Milky Way",
     "imageUrl": "images/HimekoLC.png"
   },
@@ -548,5 +548,25 @@
     "S5": 1.0,
     "lightConeName": "In Pursuit of the Wind",
     "imageUrl": "images/BpBreakLC.png"
+  },
+  {
+    "characterName": "Gepard",
+    "S1": 0.0,
+    "S2": 0.0,
+    "S3": 0.5,
+    "S4": 0.5,
+    "S5": 1.0,
+    "lightConeName": "Moment of Victory",
+    "imageUrl": "images/GepardLC.png"
+  },
+  {
+    "characterName": "Welt",
+    "S1": 0.0,
+    "S2": 0.0,
+    "S3": 0.5,
+    "S4": 0.5,
+    "S5": 1.0,
+    "lightConeName": "In the Name of the World",
+    "imageUrl": "images/WeltLC.png"
   }
 ]
