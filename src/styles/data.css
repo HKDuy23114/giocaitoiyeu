@@ -1,0 +1,183 @@
+/* ===== PAGE ===== */
+
+.data-page{
+    display:flex;
+    gap:30px;
+    padding:20px;
+    background:#0f0f14;
+    min-height:100vh;
+    width:100%;
+    box-sizing:border-box;
+    color:white;
+    flex-wrap:wrap;
+}
+
+/* ===== PANEL ===== */
+
+.data-panel{
+    flex:1 1 600px;
+    min-width:0;
+}
+
+/* ===== CONTROL ===== */
+
+.control-bar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.control-bar input{
+    flex:1 1 200px;
+    min-width:120px;
+    padding:8px;
+    border-radius:6px;
+    border:none;
+    background:#14141d;
+    color:white;
+}
+
+.control-bar input::placeholder{
+    color:#888;
+}
+
+.control-bar select{
+    padding:8px;
+}
+
+.control-bar button{
+    padding:8px 12px;
+    background:#2c2c3a;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+/* ===== TABLE ===== */
+
+.table-wrapper{
+    overflow-x:auto;
+    background:#1a1a24;
+    border-radius:10px;
+    padding:10px;
+    max-height:80vh;
+}
+
+.data-table{
+    width:100%;
+    min-width:700px;
+    border-collapse:collapse;
+    font-size:14px;
+}
+
+.data-table th,
+.data-table td{
+    border:1px solid #2c2c3a;
+    padding:6px;
+    text-align:left;
+}
+
+.data-table thead{
+    position:sticky;
+    top:0;
+    background:#1a1a24;
+    z-index:2;
+}
+
+/* ===== IMAGE ===== */
+
+.icon-img{
+    width:40px;
+}
+
+/* ===== MOBILE LIST DEFAULT (PC HIDE) ===== */
+
+.mobile-list{
+    display:none;
+}
+
+/* ================================================= */
+/* ================= 📱 MOBILE ====================== */
+/* ================================================= */
+
+@media (max-width:768px){
+
+    .data-page{
+        flex-direction:column;
+        gap:20px;
+        padding:10px;
+    }
+
+    .data-panel{
+        flex:1 1 100%;
+    }
+
+    /* Ẩn table */
+    .data-table{
+        display:none;
+    }
+
+    /* ===== CONTROL BAR MOBILE (FIX SIZE) ===== */
+
+    .control-bar{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+    }
+
+    .control-bar input{
+        grid-column:1 / -1; /* search full width */
+        padding:8px;
+        font-size:13px;
+    }
+
+    .control-bar select,
+    .control-bar button{
+        padding:7px;
+        font-size:12px;
+    }
+
+    /* ===== MOBILE CARD ===== */
+
+    .mobile-list{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+    }
+
+    .mobile-card{
+        background:#1a1a24;
+        border-radius:10px;
+        padding:12px;
+        display:flex;
+        gap:12px;
+        align-items:flex-start;
+    }
+
+    .mobile-card img{
+        width:50px;
+        height:50px;
+        object-fit:cover;
+        border-radius:8px;
+    }
+
+    .mobile-content{
+        flex:1;
+        font-size:13px;
+    }
+
+    .mobile-title{
+        font-weight:bold;
+        margin-bottom:5px;
+    }
+
+    .mobile-stats{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:4px;
+        font-size:12px;
+    }
+
+}

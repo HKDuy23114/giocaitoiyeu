@@ -1171,6 +1171,112 @@ html,body{
     display: none;
 }
 
-.button-4:-webkit-details-marker {
+.button-4::-webkit-details-marker {
     display: none;
+}
+
+.draft-page{
+    width:100%;
+    overflow-x:hidden;
+}
+/* =========================
+   MOBILE UI FIX
+========================= */
+@media (max-width: 768px){
+
+    /* ===== CONTAINER ===== */
+    .draft-container{
+        flex-direction: column;
+        gap: 10px;
+        margin: 10px;
+    }
+
+    .team-section{
+        width: 100%;
+    }
+
+    /* ===== SLOT GRID ===== */
+    .team-slots-center{
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .slot,
+    .slot-half{
+        width: 60px;
+        height: 140px;
+    }
+
+    /* ===== SCORE PANEL ===== */
+    .score-panel{
+        width: 100%;
+    }
+
+    .score-panel input{
+        width: 100%;
+    }
+
+    /* ===== SEARCH BAR ===== */
+    .search-container{
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-bar{
+        width: 100%;
+    }
+
+    /* ===== CHARACTER GRID ===== */
+    .grid{
+        grid-template-columns: repeat(auto-fill, 45px);
+        gap: 4px;
+        width: 100%;
+    }
+
+    .grid .tile{
+        width: 45px;
+        height: 45px;
+    }
+
+    /* ===== MODAL ===== */
+    .lc-box{
+        width: 95%;
+        padding: 15px;
+        max-height: 90vh;
+    }
+
+    .lc-grid{
+        grid-template-columns: repeat(3,1fr);
+        gap: 6px;
+    }
+
+    .lc-tile img{
+        height: 70px;
+    }
+
+    /* ===== BUTTON ===== */
+    .lc-buttons{
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .lc-buttons button{
+        width: 100%;
+    }
+
+    /* ===== BAN UI ===== */
+    .top-center-row{
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .ban-container,
+    .winner-container{
+        width: 100%;
+    }
+
+    .team-ban-row{
+        justify-content: center;
+    }
+
 }

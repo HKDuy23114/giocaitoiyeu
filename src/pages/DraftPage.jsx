@@ -1027,7 +1027,8 @@ export default function DraftPage() {
                 </div>
 
             )}
-            <div className="draft-container">
+            <div className="draft-page">
+                <div className="draft-container">
 
                 {/* TEAM 1 SCORE */}
                 <div className="team-section">
@@ -1317,7 +1318,7 @@ export default function DraftPage() {
                 </div>
 
             </div>
-
+            </div>
 
             {/* CHARACTER GRID */}
 

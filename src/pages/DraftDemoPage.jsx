@@ -748,7 +748,7 @@ export default function DraftPage() {
             )}
 
             {/* MAIN DRAFT AREA */}
-
+            <div className="draft-page">
             <div className="draft-container">
 
                 {/* TEAM 1 PANEL */}
@@ -981,7 +981,7 @@ export default function DraftPage() {
                 </div>
 
             </div>
-
+            </div>
             {/* CHARACTER GRID */}
 
             <div className="grid-wrap">

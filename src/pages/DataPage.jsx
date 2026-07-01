@@ -1,4 +1,4 @@
-
+import "../styles/data.css";
 import { useEffect, useState } from "react";
 
 export default function DataPage() {
@@ -12,8 +12,8 @@ export default function DataPage() {
     const [charSort, setCharSort] = useState("name");
     const [lcSort, setLcSort] = useState("name");
 
-    const [charAsc,setCharAsc] = useState(true);
-    const [lcAsc,setLcAsc] = useState(true);
+    const [charAsc, setCharAsc] = useState(true);
+    const [lcAsc, setLcAsc] = useState(true);
 
     useEffect(() => {
 
@@ -40,11 +40,6 @@ export default function DataPage() {
                 const charDataRaw = await charRes.json();
                 const lcDataRaw = await lcRes.json();
 
-                if (!Array.isArray(charDataRaw) || !Array.isArray(lcDataRaw)) {
-                    console.error("API lỗi:", charDataRaw, lcDataRaw);
-                    return;
-                }
-
                 setCharacters(normalize(charDataRaw));
                 setLightcones(normalize(lcDataRaw));
 
@@ -57,14 +52,16 @@ export default function DataPage() {
 
     }, []);
 
-    const filteredCharacters =
-        characters.filter(c =>
-            (c.characterName || "")
-                .toLowerCase()
-                .includes(charSearch.toLowerCase())
-        )
-            .sort((a, b) => {
+    // ===== FILTER =====
 
+    const filteredCharacters =
+        characters
+            .filter(c =>
+                (c.characterName || "")
+                    .toLowerCase()
+                    .includes(charSearch.toLowerCase())
+            )
+            .sort((a, b) => {
                 if (charSort === "name") {
                     return charAsc
                         ? (a.characterName || "").localeCompare(b.characterName || "")
@@ -74,9 +71,7 @@ export default function DataPage() {
                 return charAsc
                     ? a[charSort] - b[charSort]
                     : b[charSort] - a[charSort];
-
             });
-
 
     const filteredLC =
         lightcones
@@ -86,7 +81,6 @@ export default function DataPage() {
                     .includes(lcSearch.toLowerCase())
             )
             .sort((a, b) => {
-
                 if (lcSort === "name") {
                     return lcAsc
                         ? (a.characterName || "").localeCompare(b.characterName || "")
@@ -96,270 +90,191 @@ export default function DataPage() {
                 return lcAsc
                     ? a[lcSort] - b[lcSort]
                     : b[lcSort] - a[lcSort];
-
             });
 
-
     return (
+        <div className="data-page">
 
-        <div
-            style={{
-                display: "flex",
-                gap: "30px",
-                padding: "20px 30px",
-                background: "#0f0f14",
-                minHeight: "100vh",
-                width: "100vw",
-                boxSizing: "border-box",
-                color: "white"
-            }}
-        >
+            {/* ================= CHARACTERS ================= */}
+            <div className="data-panel">
 
-            {/* CHARACTERS */}
+                <h2>Characters</h2>
 
-            <div style={{ flex: 1, minWidth: 0 }}>
-
-                <h2 style={{ marginBottom: "10px" }}>Characters</h2>
-
-                <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
-
+                <div className="control-bar">
                     <input
                         placeholder="Search character..."
                         value={charSearch}
                         onChange={(e) => setCharSearch(e.target.value)}
-                        style={{
-                            flex: 1,
-                            padding: "8px",
-                            borderRadius: "6px",
-                            border: "none"
-                        }}
                     />
 
                     <select
                         value={charSort}
                         onChange={(e) => setCharSort(e.target.value)}
-                        style={{ padding: "8px" }}
                     >
                         <option value="name">Sort Name</option>
-                        <option value="E0">Sort E0</option>
-                        <option value="E1">Sort E1</option>
-                        <option value="E2">Sort E2</option>
-                        <option value="E3">Sort E3</option>
-                        <option value="E4">Sort E4</option>
-                        <option value="E5">Sort E5</option>
-                        <option value="E6">Sort E6</option>
+                        <option value="E0">E0</option>
+                        <option value="E1">E1</option>
+                        <option value="E2">E2</option>
+                        <option value="E3">E3</option>
+                        <option value="E4">E4</option>
+                        <option value="E5">E5</option>
+                        <option value="E6">E6</option>
                     </select>
 
-                    <button
-                        onClick={() => setCharAsc(!charAsc)}
-                        style={{
-                            padding: "8px 12px",
-                            background: "#2c2c3a",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer"
-                        }}
-                    >
+                    <button onClick={() => setCharAsc(!charAsc)}>
                         {charAsc ? "ASC ↑" : "DESC ↓"}
                     </button>
-
                 </div>
 
-
-                <div
-                    style={{
-                        background: "#1a1a24",
-                        borderRadius: "10px",
-                        padding: "10px",
-                        maxHeight: "80vh",
-                        overflow: "auto"
-                    }}
-                >
-
-                    <table
-                        style={{
-                            width: "100%",
-                            borderCollapse: "collapse",
-                            border: "1px solid #2c2c3a"
-                        }}
-                    >
-
-                        <thead style={{ position: "sticky", top: 0, background: "#1a1a24" }}>
-
-                            <tr>
-
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>Icon</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>Name</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>E0</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>E1</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>E2</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>E3</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>E4</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>E5</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>E6</th>
-
-                            </tr>
-
+                {/* ===== DESKTOP TABLE ===== */}
+                <div className="table-wrapper">
+                    <table className="data-table">
+                        <thead>
+                        <tr>
+                            <th>Icon</th>
+                            <th>Name</th>
+                            <th>E0</th>
+                            <th>E1</th>
+                            <th>E2</th>
+                            <th>E3</th>
+                            <th>E4</th>
+                            <th>E5</th>
+                            <th>E6</th>
+                        </tr>
                         </thead>
 
                         <tbody>
-
-                            {filteredCharacters.map((c, i) => (
-
-                                <tr key={i}>
-
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>
-                                        <img
-                                            src={c.imageIcon}
-                                            style={{ width: "40px" }}
-                                        />
-                                    </td>
-
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.characterName}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.E0}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.E1}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.E2}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.E3}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.E4}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.E5}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{c.E6}</td>
-
-                                </tr>
-
-                            ))}
-
+                        {filteredCharacters.map((c, i) => (
+                            <tr key={i}>
+                                <td><img src={c.imageIcon} className="icon-img" /></td>
+                                <td>{c.characterName}</td>
+                                <td>{c.E0}</td>
+                                <td>{c.E1}</td>
+                                <td>{c.E2}</td>
+                                <td>{c.E3}</td>
+                                <td>{c.E4}</td>
+                                <td>{c.E5}</td>
+                                <td>{c.E6}</td>
+                            </tr>
+                        ))}
                         </tbody>
-
                     </table>
+                </div>
 
+                {/* ===== MOBILE CARD ===== */}
+                <div className="mobile-list">
+                    {filteredCharacters.map((c, i) => (
+                        <div className="mobile-card" key={i}>
+                            <img src={c.imageIcon} />
+
+                            <div className="mobile-content">
+                                <div className="mobile-title">{c.characterName}</div>
+
+                                <div className="mobile-stats">
+                                    <div>E0: {c.E0}</div>
+                                    <div>E1: {c.E1}</div>
+                                    <div>E2: {c.E2}</div>
+                                    <div>E3: {c.E3}</div>
+                                    <div>E4: {c.E4}</div>
+                                    <div>E5: {c.E5}</div>
+                                    <div>E6: {c.E6}</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
             </div>
 
 
+            {/* ================= LIGHTCONES ================= */}
+            <div className="data-panel">
 
-            {/* LIGHTCONES */}
+                <h2>Lightcones</h2>
 
-            <div style={{ flex: 1, minWidth: 0 }}>
-
-                <h2 style={{ marginBottom: "10px" }}>Lightcones</h2>
-
-                <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
-
+                <div className="control-bar">
                     <input
                         placeholder="Search lightcone..."
                         value={lcSearch}
                         onChange={(e) => setLcSearch(e.target.value)}
-                        style={{
-                            flex: 1,
-                            padding: "8px",
-                            borderRadius: "6px",
-                            border: "none"
-                        }}
                     />
 
                     <select
                         value={lcSort}
                         onChange={(e) => setLcSort(e.target.value)}
-                        style={{ padding: "8px" }}
                     >
                         <option value="name">Sort Name</option>
-                        <option value="S1">Sort S1</option>
-                        <option value="S2">Sort S2</option>
-                        <option value="S3">Sort S3</option>
-                        <option value="S4">Sort S4</option>
-                        <option value="S5">Sort S5</option>
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                        <option value="S3">S3</option>
+                        <option value="S4">S4</option>
+                        <option value="S5">S5</option>
                     </select>
 
-                    <button
-                        onClick={() => setLcAsc(!lcAsc)}
-                        style={{
-                            padding: "8px 12px",
-                            background: "#2c2c3a",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer"
-                        }}
-                    >
+                    <button onClick={() => setLcAsc(!lcAsc)}>
                         {lcAsc ? "ASC ↑" : "DESC ↓"}
                     </button>
-
                 </div>
 
-
-                <div
-                    style={{
-                        background: "#1a1a24",
-                        borderRadius: "10px",
-                        padding: "10px",
-                        maxHeight: "80vh",
-                        overflow: "auto"
-                    }}
-                >
-
-                    <table
-                        style={{
-                            width: "100%",
-                            borderCollapse: "collapse",
-                            border: "1px solid #2c2c3a"
-                        }}
-                    >
-
-                        <thead style={{ position: "sticky", top: 0, background: "#1a1a24" }}>
-
-                            <tr>
-
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>Icon</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>Character</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>Name</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>S1</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>S2</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>S3</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>S4</th>
-                                <th style={{ border: "1px solid #2c2c3a", padding: "6px" }}>S5</th>
-
-                            </tr>
-
+                {/* TABLE */}
+                <div className="table-wrapper">
+                    <table className="data-table">
+                        <thead>
+                        <tr>
+                            <th>Icon</th>
+                            <th>Character</th>
+                            <th>Name</th>
+                            <th>S1</th>
+                            <th>S2</th>
+                            <th>S3</th>
+                            <th>S4</th>
+                            <th>S5</th>
+                        </tr>
                         </thead>
 
                         <tbody>
-
-                            {filteredLC.map((lc, i) => (
-
-                                <tr key={i}>
-
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>
-                                        <img
-                                            src={lc.imageUrl}
-                                            style={{ width: "40px" }}
-                                        />
-                                    </td>
-
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{lc.characterName}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{lc.lightConeName}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{lc.S1}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{lc.S2}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{lc.S3}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{lc.S4}</td>
-                                    <td style={{ border: "1px solid #2c2c3a", padding: "6px" }}>{lc.S5}</td>
-
-                                </tr>
-
-                            ))}
-
+                        {filteredLC.map((lc, i) => (
+                            <tr key={i}>
+                                <td><img src={lc.imageUrl} className="icon-img" /></td>
+                                <td>{lc.characterName}</td>
+                                <td>{lc.lightConeName}</td>
+                                <td>{lc.S1}</td>
+                                <td>{lc.S2}</td>
+                                <td>{lc.S3}</td>
+                                <td>{lc.S4}</td>
+                                <td>{lc.S5}</td>
+                            </tr>
+                        ))}
                         </tbody>
-
                     </table>
+                </div>
 
+                {/* MOBILE */}
+                <div className="mobile-list">
+                    {filteredLC.map((lc, i) => (
+                        <div className="mobile-card" key={i}>
+                            <img src={lc.imageUrl} />
+
+                            <div className="mobile-content">
+                                <div className="mobile-title">{lc.lightConeName}</div>
+                                <div style={{ fontSize: "12px", opacity: 0.7 }}>
+                                    {lc.characterName}
+                                </div>
+
+                                <div className="mobile-stats">
+                                    <div>S1: {lc.S1}</div>
+                                    <div>S2: {lc.S2}</div>
+                                    <div>S3: {lc.S3}</div>
+                                    <div>S4: {lc.S4}</div>
+                                    <div>S5: {lc.S5}</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
             </div>
 
         </div>
-
     );
-
 }
-
