@@ -17,34 +17,58 @@ export default function DataPage() {
 
     useEffect(() => {
 
-        const load = async () => {
+        const CHAR_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/characters";
+        const LC_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/lightcones";
 
-            const charRes = await fetch("/data/characters.json");
-            const charData = await charRes.json();
-            setCharacters(charData);
-
-            const lcRes = await fetch("/data/lightcones.json");
-            const lcData = await lcRes.json();
-            setLightcones(lcData);
-
+        const normalize = (data) => {
+            return data.map(item => {
+                let obj = {};
+                Object.keys(item).forEach(key => {
+                    obj[key.trim()] = item[key];
+                });
+                return obj;
+            });
         };
 
-        load();
+        const loadData = async () => {
+            try {
+                const [charRes, lcRes] = await Promise.all([
+                    fetch(CHAR_URL),
+                    fetch(LC_URL)
+                ]);
+
+                const charDataRaw = await charRes.json();
+                const lcDataRaw = await lcRes.json();
+
+                if (!Array.isArray(charDataRaw) || !Array.isArray(lcDataRaw)) {
+                    console.error("API lỗi:", charDataRaw, lcDataRaw);
+                    return;
+                }
+
+                setCharacters(normalize(charDataRaw));
+                setLightcones(normalize(lcDataRaw));
+
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        loadData();
 
     }, []);
 
-
     const filteredCharacters =
-        characters
-            .filter(c =>
-                c.characterName.toLowerCase().includes(charSearch.toLowerCase())
-            )
+        characters.filter(c =>
+            (c.characterName || "")
+                .toLowerCase()
+                .includes(charSearch.toLowerCase())
+        )
             .sort((a, b) => {
 
                 if (charSort === "name") {
                     return charAsc
-                        ? a.characterName.localeCompare(b.characterName)
-                        : b.characterName.localeCompare(a.characterName);
+                        ? (a.characterName || "").localeCompare(b.characterName || "")
+                        : (b.characterName || "").localeCompare(a.characterName || "");
                 }
 
                 return charAsc
@@ -57,14 +81,16 @@ export default function DataPage() {
     const filteredLC =
         lightcones
             .filter(lc =>
-                lc.characterName.toLowerCase().includes(lcSearch.toLowerCase())
+                (lc.characterName || "")
+                    .toLowerCase()
+                    .includes(lcSearch.toLowerCase())
             )
             .sort((a, b) => {
 
                 if (lcSort === "name") {
                     return lcAsc
-                        ? a.characterName.localeCompare(b.characterName)
-                        : b.characterName.localeCompare(a.characterName);
+                        ? (a.characterName || "").localeCompare(b.characterName || "")
+                        : (b.characterName || "").localeCompare(a.characterName || "");
                 }
 
                 return lcAsc

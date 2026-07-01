@@ -262,19 +262,42 @@ export default function DraftPage() {
 
     }, [timerData, isAdmin, isSlot2Banned, draft.length]);
 
-    // LOAD JSON
     useEffect(() => {
 
+        const CHAR_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/characters";
+        const LC_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/lightcones";
+
+        const normalize = (data) => {
+            return data.map(item => {
+                let obj = {};
+                Object.keys(item).forEach(key => {
+                    obj[key.trim()] = item[key];
+                });
+                return obj;
+            });
+        };
+
         const loadData = async () => {
+            try {
+                const [charRes, lcRes] = await Promise.all([
+                    fetch(CHAR_URL),
+                    fetch(LC_URL)
+                ]);
 
-            const charRes = await fetch("/data/characters.json");
-            const charData = await charRes.json();
-            setCharacters(charData);
+                const charDataRaw = await charRes.json();
+                const lcDataRaw = await lcRes.json();
 
-            const lcRes = await fetch("/data/lightcones.json");
-            const lcData = await lcRes.json();
-            setLightcones(lcData);
+                if (!Array.isArray(charDataRaw) || !Array.isArray(lcDataRaw)) {
+                    console.error("API lỗi:", charDataRaw, lcDataRaw);
+                    return;
+                }
 
+                setCharacters(normalize(charDataRaw));
+                setLightcones(normalize(lcDataRaw));
+
+            } catch (err) {
+                console.error(err);
+            }
         };
 
         loadData();
@@ -286,17 +309,12 @@ export default function DraftPage() {
 
         const draftRef = ref(db, "rooms/" + roomID + "/draft");
 
-        onValue(draftRef, (snapshot) => {
-
+        const unsubscribe = onValue(draftRef, (snapshot) => {
             const data = snapshot.val();
-
-            if (data) {
-                setDraft(data);
-            } else {
-                setDraft([]);
-            }
-
+            setDraft(data || []);
         });
+
+        return () => unsubscribe();
 
     }, [roomID]);
 
@@ -405,7 +423,7 @@ export default function DraftPage() {
         const picked = {
             characterName: character.characterName,
             imageFull: character.imageFull,
-            rarity: character.rarity,
+            rarity: Number(character.rarity) || 4,
             pointE0: character.E0,
             pointE1: character.E1,
             pointE2: character.E2,
@@ -487,7 +505,7 @@ export default function DraftPage() {
                     ? char.lightCone[char.superimposition] || 0
                     : 0;
 
-            total += charPoint + lcPoint;
+            total += Number(charPoint) + Number(lcPoint);
 
         });
 
@@ -510,7 +528,7 @@ export default function DraftPage() {
             char.rarity === 5
                 ? "#e6b741"
                 : "#9b59b6";
-        const point = char["point" + char.eidolon];
+        const point = Number(char["point" + char.eidolon]) || 0;
         const lcPoint =
             char.lightCone && char.superimposition
                 ? char.lightCone[char.superimposition] || 0
@@ -637,7 +655,7 @@ export default function DraftPage() {
                             textAlign: "center"
                         }}
                     >
-                        {point.toFixed(1)}
+                        {(point || 0).toFixed(1)}
                     </div>
                 )}
             </div>
@@ -1408,7 +1426,7 @@ export default function DraftPage() {
                                     pickCharacter(character);
                                 }}
                                 style={{
-                                    background: character.rarity === 5 ? "#e6b741" : "#9b59b6",
+                                    background: Number(character.rarity) === 5 ? "#e6b741" : "#9b59b6",
                                     opacity: (isPicked || isBanned || !canPick) ? 0.35 : 1,
                                     pointerEvents: (isPicked || isBanned || !canPick) ? "none" : "auto",
                                     filter: (isPicked || isBanned) ? "grayscale(100%) brightness(100%)" : "none"

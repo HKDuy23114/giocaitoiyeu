@@ -15,16 +15,52 @@ export default function DraftCalculator() {
     const [cycle, setCycle] = useState(0);
 
     useEffect(() => {
-        const load = async () => {
-            const charRes = await fetch("/data/characters.json");
-            const charData = await charRes.json();
-            setCharacters(charData);
 
-            const lcRes = await fetch("/data/lightcones.json");
-            const lcData = await lcRes.json();
-            setLightcones(lcData);
+        const CHAR_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/characters";
+        const LC_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/lightcones";
+
+        const normalize = (data) => {
+            return data.map(item => {
+                let obj = {};
+                Object.keys(item).forEach(key => {
+                    const newKey = key.trim();
+                    let value = item[key];
+
+                    if (!isNaN(value) && value !== "") {
+                        value = Number(value);
+                    }
+
+                    obj[newKey] = value;
+                });
+                return obj;
+            });
         };
-        load();
+
+        const loadData = async () => {
+            try {
+                const [charRes, lcRes] = await Promise.all([
+                    fetch(CHAR_URL),
+                    fetch(LC_URL)
+                ]);
+
+                const charDataRaw = await charRes.json();
+                const lcDataRaw = await lcRes.json();
+
+                if (!Array.isArray(charDataRaw) || !Array.isArray(lcDataRaw)) {
+                    console.error("API lỗi:", charDataRaw, lcDataRaw);
+                    return;
+                }
+
+                setCharacters(normalize(charDataRaw));
+                setLightcones(normalize(lcDataRaw));
+
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        loadData();
+
     }, []);
 
     const pickCharacter = (char) => {
@@ -36,14 +72,16 @@ export default function DraftCalculator() {
             newDraft[slot] = {
                 characterName: char.characterName,
                 imageFull: char.imageFull,
-                rarity: char.rarity,
-                pointE0: char.E0,
-                pointE1: char.E1,
-                pointE2: char.E2,
-                pointE3: char.E3,
-                pointE4: char.E4,
-                pointE5: char.E5,
-                pointE6: char.E6,
+                rarity: Number(char.rarity),
+
+                pointE0: Number(char.E0),
+                pointE1: Number(char.E1),
+                pointE2: Number(char.E2),
+                pointE3: Number(char.E3),
+                pointE4: Number(char.E4),
+                pointE5: Number(char.E5),
+                pointE6: Number(char.E6),
+
                 eidolon: "E0",
                 superimposition: "S1",
             };
@@ -111,10 +149,10 @@ export default function DraftCalculator() {
         draft.forEach((char) => {
             if (!char) return;
 
-            const charPoint = char["point" + char.eidolon] || 0;
+            const charPoint = Number(char["point" + char.eidolon] || 0);
             const lcPoint =
                 char.lightCone && char.superimposition
-                    ? char.lightCone[char.superimposition] || 0
+                    ? Number(char.lightCone[char.superimposition] || 0)
                     : 0;
 
             total += charPoint + lcPoint;
@@ -199,7 +237,7 @@ export default function DraftCalculator() {
                                             </select>
 
                                             <div className="char-point">
-                                                {charPoint?.toFixed(1)}
+                                                {Number(charPoint || 0).toFixed(1)}
                                             </div>
 
                                             <div
@@ -260,7 +298,7 @@ export default function DraftCalculator() {
                             />
 
                             <h2 style={{ margin: 0 }}>
-                                Total: {totalPoint.toFixed(2)}
+                                Total: {Number(totalPoint || 0).toFixed(2)}
                             </h2>
 
                             <button

@@ -135,23 +135,48 @@ export default function DraftPage() {
     // LOAD JSON DATA
     // ===============================
 
-    useEffect(()=>{
+    useEffect(() => {
 
-        const loadData = async ()=>{
+        const CHAR_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/characters";
+        const LC_URL = "https://opensheet.elk.sh/1xxdHGKmcdNwWaVKMFCGRpKvFGnPqjVv8pQCvLofQGss/lightcones";
 
-            const charRes = await fetch("/data/characters.json");
-            const charData = await charRes.json();
-            setCharacters(charData);
+        const normalize = (data) => {
+            return data.map(item => {
+                let obj = {};
+                Object.keys(item).forEach(key => {
+                    obj[key.trim()] = item[key];
+                });
+                return obj;
+            });
+        };
 
-            const lcRes = await fetch("/data/lightcones.json");
-            const lcData = await lcRes.json();
-            setLightcones(lcData);
+        const loadData = async () => {
+            try {
+                const [charRes, lcRes] = await Promise.all([
+                    fetch(CHAR_URL),
+                    fetch(LC_URL)
+                ]);
 
+                const charDataRaw = await charRes.json();
+
+                const lcDataRaw = await lcRes.json();
+
+                if (!Array.isArray(charDataRaw) || !Array.isArray(lcDataRaw)) {
+                    console.error("API lỗi:", charDataRaw, lcDataRaw);
+                    return;
+                }
+
+                setCharacters(normalize(charDataRaw));
+                setLightcones(normalize(lcDataRaw));
+
+            } catch (err) {
+                console.error(err);
+            }
         };
 
         loadData();
 
-    },[]);
+    }, []);
 
     // ===============================
     // SWITCH TURN
@@ -199,19 +224,18 @@ export default function DraftPage() {
         const picked = {
             characterName: character.characterName,
             imageFull: character.imageFull,
-            rarity: character.rarity,
+            rarity: Number(character.rarity),
 
-            pointE0: character.E0,
-            pointE1: character.E1,
-            pointE2: character.E2,
-            pointE3: character.E3,
-            pointE4: character.E4,
-            pointE5: character.E5,
-            pointE6: character.E6,
+            pointE0: Number(character.E0),
+            pointE1: Number(character.E1),
+            pointE2: Number(character.E2),
+            pointE3: Number(character.E3),
+            pointE4: Number(character.E4),
+            pointE5: Number(character.E5),
+            pointE6: Number(character.E6),
 
-            eidolon:"E0"
+            eidolon: "E0"
         };
-
         const newDraft = [...draft,picked];
 
         saveDraft(newDraft);
@@ -382,7 +406,7 @@ export default function DraftPage() {
 
             const lcPoint =
                 char.lightCone && char.superimposition
-                    ? char.lightCone[char.superimposition] || 0
+                    ? Number(char.lightCone[char.superimposition] || 0)
                     : 0;
 
             total += charPoint + lcPoint;
@@ -620,7 +644,7 @@ export default function DraftPage() {
                             textAlign:"center"
                         }}
                     >
-                        {point?.toFixed(1)}
+                        {Number(point || 0).toFixed(1)}
                     </div>
 
                 )}
@@ -1016,11 +1040,7 @@ export default function DraftPage() {
                                 className="tile"
                                 onClick={()=>!isPicked && canPick && pickCharacter(character)}
                                 style={{
-                                    background:
-                                        character.rarity===5
-                                            ? "#e6b741"
-                                            : "#9b59b6",
-
+                                    background: Number(character.rarity) === 5 ? "#e6b741" : "#9b59b6",
                                     opacity:!canPick || isPicked ? 0.35 : 1,
                                     pointerEvents:!canPick || isPicked ? "none" : "auto",
                                     filter:isPicked ? "grayscale(100%) brightness(100%)":"none"
