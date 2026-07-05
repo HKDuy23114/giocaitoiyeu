@@ -8,7 +8,8 @@ import {useSearchParams} from "react-router-dom";
 export default function DraftPage() {
     const [banMode, setBanMode] = useState("global");
 // "global" | "team"
-
+    const [showBossModal, setShowBossModal] = useState(false);
+    const [bossPick, setBossPick] = useState([]);
     const [showBanModeModal, setShowBanModeModal] = useState(false);
 
     const [teamBans, setTeamBans] = useState({
@@ -318,8 +319,48 @@ export default function DraftPage() {
 
     }, [roomID]);
 
+    useEffect(() => {
+        const bossRef = ref(db, "rooms/" + roomID + "/bossPick");
 
+        onValue(bossRef, (snapshot) => {
+            const data = snapshot.val();
+            setBossPick(data || []);
+        });
+    }, [roomID]);
+    const bosses = [
+        {
+            name: "Flame Reaver",
+            image: "/images/HGTL2.png",
+            showImage: "/images/HGTL.png"
+        },
+        {
+            name: "Graphia",
+            image: "/images/Graphia2.png",
+            showImage: "/images/Graphia.png"
+        },
+        {
+            name: "SparxieCon",
+            image: "/images/SparxieCon2.png",
+            showImage: "/images/SparxieCon.png"
+        }
+    ];
 
+    const toggleBossPick = (boss) => {
+        if (!isAdmin) return;
+
+        let newPick = [...bossPick];
+
+        const exists = newPick.find(b => b.name === boss.name);
+
+        if (exists) {
+            newPick = newPick.filter(b => b.name !== boss.name);
+        } else {
+            if (newPick.length >= 2) return;
+            newPick.push(boss);
+        }
+
+        set(ref(db, "rooms/" + roomID + "/bossPick"), newPick);
+    };
     const switchTurn = () => {
         if (draft.length >= 19) return;
 
@@ -459,6 +500,7 @@ export default function DraftPage() {
         saveDraft([]);
 
         set(ref(db, "rooms/" + roomID + "/bans"), []);
+        set(ref(db, "rooms/" + roomID + "/bossPick"), []);
         set(ref(db, "rooms/" + roomID + "/teamBans"), {
             team1: [],
             team2: []
@@ -858,6 +900,40 @@ export default function DraftPage() {
                     </div>
                 </div>
             )}
+            {showBossModal && (
+                <div className="lc-modal" onClick={() => setShowBossModal(false)}>
+                    <div className="lc-box" onClick={(e) => e.stopPropagation()}>
+
+                        <h3>Select 2 Boss</h3>
+
+                        <div className="boss-grid">
+                            {bosses.map((b, i) => {
+                                const isActive = bossPick.some(x => x.name === b.name);
+
+                                return (
+                                    <div
+                                        key={i}
+                                        className={`boss-tile ${isActive ? "active" : ""}`}
+                                        onClick={() => toggleBossPick(b)}
+                                    >
+                                        <div className="boss-image">
+                                            <img src={b.image} />
+                                            <span className="boss-name">{b.name}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="lc-buttons">
+                            <button onClick={() => setShowBossModal(false)}>
+                                Close
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            )}
             {showBanModal && (
                 <div className="lc-modal" onClick={() => setShowBanModal(false)}>
 
@@ -1153,7 +1229,28 @@ export default function DraftPage() {
 
                     <div className="top-center-row">
 
+                        <div className="boss-container">
+                            <div className="boss-list">
 
+                                {[0,1].map((slot) => {
+                                    const b = bossPick[slot];
+
+                                    return (
+                                        <div key={slot} className="boss-card">
+                                            {b ? (
+                                                <>
+                                                    <img src={b.showImage || b.image} />
+                                                    <div className="boss-label">BOSS</div>
+                                                </>
+                                            ) : (
+                                                <div className="boss-placeholder">?</div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+
+                            </div>
+                        </div>
 
                         {/* WINNER */}
                         <div className="winner-container">
@@ -1382,6 +1479,15 @@ export default function DraftPage() {
                                 style={{background:"#8e44ad"}}
                             >
                                 Ban Character
+                            </button>
+                        )}
+                        {isAdmin && (
+                            <button
+                                className="custom-btn"
+                                onClick={() => setShowBossModal(true)}
+                                style={{ background: "#c0392b" }}
+                            >
+                                Select Boss
                             </button>
                         )}
 

@@ -11,7 +11,158 @@ html,body{
     background:#19181a;
     overflow-x: hidden;
 }
+/* ===== BOSS AREA ===== */
+.boss-container {
+    display: flex;
+    justify-content: center;
+    width: 180px;
+}
 
+/* list ngang */
+.boss-list {
+    display: flex;
+    gap: 12px;
+}
+
+/* CARD CHÍNH */
+.boss-card {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+
+    /* ✨ nổi */
+    transform: translateY(-5px);
+    box-shadow:
+            0 8px 20px rgba(0,0,0,0.6),
+            0 0 12px rgba(155, 89, 182, 0.6); /* tím HSR */
+
+    border: 2px solid rgba(255,255,255,0.2);
+
+    transition: all 0.25s ease;
+}
+
+/* hover effect */
+.boss-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow:
+            0 12px 30px rgba(0,0,0,0.8),
+            0 0 20px rgba(155, 89, 182, 1);
+}
+
+/* image */
+.boss-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* label */
+.boss-label {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    background: rgba(0,0,0,0.7);
+    color: #ffd700;
+    font-size: 11px;
+    font-weight: bold;
+
+    padding: 2px 6px;
+    border-radius: 5px;
+}
+
+/* placeholder */
+.boss-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 24px;
+    color: #bbb;
+
+    background: rgba(255,255,255,0.05);
+    border: 2px dashed rgba(255,255,255,0.2);
+
+    border-radius: 12px;
+}
+
+.boss-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 cột đều */
+    gap: 10px;
+    width: 100%;
+
+}
+.boss-tile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 10px;
+    border-radius: 12px;
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    background: rgba(255,255,255,0.05);
+}
+.boss-image {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.boss-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 🔥 QUAN TRỌNG */
+}.boss-name {
+     position: absolute;
+     bottom: 0;
+     left: 0;
+     width: 100%;
+
+     text-align: center;
+     padding: 8px 0;
+
+     font-size: 16px;
+     font-weight: bold;
+     color: #fff;
+
+     background: rgba(0, 0, 0, 0.6); /* nền mờ */
+ }
+/* ẢNH TO RA */
+.boss-tile img {
+    width: 220px;
+    height: 220px;
+    object-fit: contain;
+
+    transition: transform 0.25s ease;
+}
+
+/* TEXT */
+.boss-tile p {
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+/* HOVER */
+.boss-tile:hover img {
+    transform: scale(1.1);
+}
+
+/* ACTIVE */
+.boss-tile.active {
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.9);
+    background: rgba(155, 89, 182, 0.2);
+}
 .modal-overlay{
     position: fixed;
     inset: 0;
